@@ -1,4 +1,4 @@
-import { DM_Sans, Geist } from "next/font/google";
+import { DM_Sans } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/navbar";
 

@@ -2,7 +2,7 @@
 
 import { useRef } from "react";
 import Link from "next/link";
-import { Shield, Sparkles, Lock, Activity, Gauge } from "lucide-react";
+import { Shield, Sparkles } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 import Container from "@/components/Container";
 import { Button } from "@/components/ui/button";
@@ -19,16 +19,16 @@ const LoginPage = () => {
       }
 
       gsap.from(".login-reveal", {
-        y: 36,
+        y: 30,
         opacity: 0,
         filter: "blur(8px)",
-        duration: 1,
-        ease: "power4.out",
+        duration: 0.9,
+        ease: "power3.out",
         stagger: 0.08,
       });
 
       gsap.to(".orb-one", {
-        yPercent: 30,
+        yPercent: 28,
         xPercent: -8,
         ease: "none",
         scrollTrigger: {
@@ -40,8 +40,8 @@ const LoginPage = () => {
       });
 
       gsap.to(".orb-two", {
-        yPercent: -25,
-        xPercent: 12,
+        yPercent: -22,
+        xPercent: 10,
         ease: "none",
         scrollTrigger: {
           trigger: rootRef.current,
@@ -51,20 +51,6 @@ const LoginPage = () => {
         },
       });
 
-      gsap.utils.toArray(".trust-card").forEach((card, index) => {
-        gsap.from(card, {
-          y: 46,
-          opacity: 0,
-          duration: 0.9,
-          ease: "power3.out",
-          delay: index * 0.06,
-          scrollTrigger: {
-            trigger: card,
-            start: "top 88%",
-            once: true,
-          },
-        });
-      });
     },
     { scope: rootRef, dependencies: [prefersReducedMotion] }
   );
@@ -80,8 +66,8 @@ const LoginPage = () => {
 
       <Container>
         <motion.div
-          initial={prefersReducedMotion ? false : { opacity: 0.95, y: 8 }}
-          animate={prefersReducedMotion ? {} : { opacity: 1, y: 0 }}
+          initial={prefersReducedMotion ? false : { opacity: 0.95, y: 8 , filter: "blur(6px)"}}
+          animate={prefersReducedMotion ? {} : { opacity: 1, y: 0 , filter: "blur(0px)"}}
           transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
           className="mx-auto grid w-full max-w-5xl overflow-hidden rounded-3xl border border-border/70 bg-card/85 shadow-aceternity backdrop-blur-xl md:grid-cols-2"
         >
@@ -89,9 +75,9 @@ const LoginPage = () => {
             <div className="space-y-4">
               <p className="login-reveal inline-flex items-center gap-2 rounded-full border border-border/70 bg-background/70 px-3 py-1 text-xs font-medium text-muted-foreground">
                 <Sparkles className="size-3.5" />
-                Breach 2026 Control Desk
+                Application-Name
               </p>
-              <h1 className="login-reveal max-w-sm text-3xl leading-tight font-semibold tracking-tight text-foreground">
+              <h1 className="login-reveal max-w-sm text-3xl leading-tight font-semibold tracking-tighter text-foreground">
                 Welcome back.
                 <br />
                 Secure access starts here.
@@ -116,7 +102,7 @@ const LoginPage = () => {
             <div className="mx-auto w-full max-w-sm">
               <div className="mb-8 login-reveal">
                 <p className="text-sm font-medium text-muted-foreground">Sign in</p>
-                <h2 className="mt-1 text-2xl font-semibold tracking-tight text-foreground">Access your account</h2>
+                <h2 className="mt-1 text-3xl font-semibold tracking-tighter text-foreground">Access your account</h2>
               </div>
 
               <form className="space-y-4" aria-label="login form">
@@ -166,7 +152,7 @@ const LoginPage = () => {
                   className="login-reveal"
                   whileHover={prefersReducedMotion ? {} : { y: -2 }}
                   whileTap={prefersReducedMotion ? {} : { scale: 0.99 }}
-                  transition={{ type: "spring", stiffness: 240, damping: 20 }}
+                  transition={{ type: "spring", stiffness: 220, damping: 18 }}
                 >
                   <Button type="submit" className="h-11 w-full rounded-xl text-sm font-semibold">
                     Continue
@@ -183,38 +169,6 @@ const LoginPage = () => {
             </div>
           </div>
         </motion.div>
-
-        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <article className="trust-card rounded-2xl border border-border/70 bg-card/80 p-5 shadow-aceternity backdrop-blur-lg">
-            <div className="mb-3 inline-flex size-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
-              <Lock className="size-4" />
-            </div>
-            <h3 className="text-sm font-semibold text-foreground">Encrypted Session Envelope</h3>
-            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-              Every sign-in event is wrapped with contextual metadata and anomaly checks.
-            </p>
-          </article>
-
-          <article className="trust-card rounded-2xl border border-border/70 bg-card/80 p-5 shadow-aceternity backdrop-blur-lg">
-            <div className="mb-3 inline-flex size-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
-              <Activity className="size-4" />
-            </div>
-            <h3 className="text-sm font-semibold text-foreground">Live Threat Telemetry</h3>
-            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-              Login activity instantly syncs with campaign simulation dashboards and event streams.
-            </p>
-          </article>
-
-          <article className="trust-card rounded-2xl border border-border/70 bg-card/80 p-5 shadow-aceternity backdrop-blur-lg sm:col-span-2 lg:col-span-1">
-            <div className="mb-3 inline-flex size-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
-              <Gauge className="size-4" />
-            </div>
-            <h3 className="text-sm font-semibold text-foreground">Adaptive Challenge Scoring</h3>
-            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-              Access policies adapt to risk score, location fingerprinting, and device history.
-            </p>
-          </article>
-        </div>
       </Container>
     </section>
   );
