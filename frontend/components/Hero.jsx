@@ -60,7 +60,7 @@ const HeroPage = () => {
               duration: 0.3,
               delay: 0.2,
             }}
-            className="text-lg text-secondary text-center tracking-normal w-full max-w-xl"
+            className="text-lg text-neutral-500 text-center tracking-normal w-full max-w-xl"
           >
             Transform your code into stunning visuals with our AI-powered code
             to image generator. Whether you're a developer, designer, or content
