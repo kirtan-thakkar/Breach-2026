@@ -23,18 +23,24 @@ const Navbar = () => {
       }}
       >
         <Container>
-          <div className="flex justify-between items-center py-6 px-6 rounded-xl shadow-aceternity backdrop-blur-xl ">
+          <div className="flex justify-between items-center  py-6 px-6 rounded-xl shadow-aceternity backdrop-blur-xl ">
             <Link href="/" className="text-primary cursor-pointer">
               {" "}
-              Logo
+              <h2 className="tracking-tighter font-medium text-xl">Phishlytics</h2>
             </Link>
             <div className="flex justify-evenly items-center gap-4">
               <Link href="/login" className="text-primary cursor-pointer">
                 Login
               </Link>
-              <h3 className="text-primary cursor-pointer">Link2</h3>
-              <h3 className="text-primary cursor-pointer">Link3</h3>
-              <h3 className="text-primary cursor-pointer">Link4</h3>
+              <Link href="/dashboard" className="text-primary cursor-pointer">
+                Dashboard
+              </Link>
+              <Link href="/analytics" className="text-primary cursor-pointer">
+                Analytics
+              </Link>
+              <Link href="/simulation" className="text-primary cursor-pointer">
+                Simulation
+              </Link>
             </div>
           </div>
         </Container>
