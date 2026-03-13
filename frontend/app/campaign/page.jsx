@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowUpRight, Layers3, PlusCircle, Target } from "lucide-react";
 
-import OpsShell from "@/components/ops/ops-shell";
+import OpsLayout from "@/components/ops/layout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatCampaignType, formatDate, getOrgIdFromParams, loadOrgSnapshot } from "@/lib/backend";
@@ -23,7 +23,7 @@ export default async function CampaignPage({ searchParams }) {
   const scheduledCount = campaigns.filter((campaign) => campaign.status === "scheduled").length;
 
   return (
-    <OpsShell
+    <OpsLayout
       activeSection="campaign"
       title="Campaign Operations"
       subtitle="Manage phishing simulations, schedules, and execution states"
@@ -120,6 +120,6 @@ export default async function CampaignPage({ searchParams }) {
           ) : null}
         </div>
       </section>
-    </OpsShell>
+    </OpsLayout>
   );
 }

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, Radar } from "lucide-react";
 
-import OpsShell from "@/components/ops/ops-shell";
+import OpsLayout from "@/components/ops/layout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatCampaignType, getOrgIdFromParams, loadOrgSnapshot } from "@/lib/backend";
@@ -20,7 +20,7 @@ export default async function SimulationIndexPage({ searchParams }) {
   const { campaigns } = await loadOrgSnapshot(orgId);
 
   return (
-    <OpsShell
+    <OpsLayout
       activeSection="simulation"
       title="Simulation"
       subtitle="Pick a campaign to inspect telemetry and anomaly signals"
@@ -62,6 +62,6 @@ export default async function SimulationIndexPage({ searchParams }) {
           ))}
         </div>
       </section>
-    </OpsShell>
+    </OpsLayout>
   );
 }

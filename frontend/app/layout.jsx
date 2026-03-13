@@ -1,6 +1,6 @@
 import { Inter } from "next/font/google";
 import "./globals.css";
-import NavbarShell from "@/components/layout/navbar-shell";
+import Navbar from "@/components/layout/navbar";
 
 export const metadata = {
   title: "Breach 2026",
@@ -18,7 +18,7 @@ export default function RootLayout({ children }) {
       <body
         className={`${inter.className} antialiased`}
       >
-        <NavbarShell />
+        <Navbar />
         {children}
       </body>
     </html>

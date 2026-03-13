@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import {
   ArcElement,
   BarElement,
@@ -16,9 +16,10 @@ import {
 import { Bar, Doughnut, Line } from "react-chartjs-2";
 import { ArrowUpRight, Bot, ShieldAlert, Target, Users, Zap } from "lucide-react";
 
-import OpsShell from "@/components/ops/ops-shell";
+import OpsLayout from "@/components/ops/layout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 ChartJS.register(
   CategoryScale,
@@ -42,7 +43,7 @@ function clampPercent(value) {
   return Math.max(0, Math.min(100, numeric));
 }
 
-export default function AnalyticsScreen({
+export default function Analytics({
   orgId,
   generatedAt,
   summary,
@@ -50,6 +51,7 @@ export default function AnalyticsScreen({
   highlightedCampaign,
   highlightedAnalytics,
 }) {
+  const [metricFilter, setMetricFilter] = useState("email-opened");
   const safeCampaigns = useMemo(() => (Array.isArray(campaigns) ? campaigns : []), [campaigns]);
 
   const totalTargets = Number(summary?.total_targets ?? 0);
@@ -139,9 +141,8 @@ export default function AnalyticsScreen({
   }, [safeCampaigns]);
 
   const lineData = useMemo(
-    () => ({
-      labels: engagementSeries.labels,
-      datasets: [
+    () => {
+      const allDatasets = [
         {
           label: "Email Opened",
           data: engagementSeries.opened,
@@ -170,9 +171,21 @@ export default function AnalyticsScreen({
           pointRadius: 2,
           tension: 0.38,
         },
-      ],
-    }),
-    [engagementSeries]
+      ];
+
+      const filteredDatasets =
+        metricFilter === "email-opened"
+          ? [allDatasets[0]]
+          : metricFilter === "link-clicked"
+            ? [allDatasets[1]]
+            : [allDatasets[2]];
+
+      return {
+        labels: engagementSeries.labels,
+        datasets: filteredDatasets,
+      };
+    },
+    [engagementSeries, metricFilter]
   );
 
   const chartOptions = {
@@ -239,7 +252,7 @@ export default function AnalyticsScreen({
   };
 
   return (
-    <OpsShell
+    <OpsLayout
       activeSection="analytics"
       title="Analytics"
       subtitle="Deep campaign performance analysis across your simulation fleet"
@@ -273,14 +286,39 @@ export default function AnalyticsScreen({
       </section>
 
       <section className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4 sm:p-5">
-        <div className="flex items-center justify-between">
-          <div>
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+          <div className="flex-1">
             <p className="text-lg font-semibold text-slate-100">Engagement vs Compromise (7 Days)</p>
             <p className="text-sm text-slate-400">
               Highlighting {highlightedCampaign?.title || "active campaign"} behavior
             </p>
           </div>
-          <Badge variant="muted">7D</Badge>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
+              <span className="text-xs uppercase tracking-[0.14em] text-slate-500">Filter Metric</span>
+              <RadioGroup value={metricFilter} onValueChange={setMetricFilter} className="flex flex-row gap-3">
+                <div className="flex items-center gap-2">
+                  <RadioGroupItem value="email-opened" id="email-opened" />
+                  <label htmlFor="email-opened" className="text-sm text-slate-300 cursor-pointer">
+                    Email Opened
+                  </label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <RadioGroupItem value="link-clicked" id="link-clicked" />
+                  <label htmlFor="link-clicked" className="text-sm text-slate-300 cursor-pointer">
+                    Link Clicked
+                  </label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <RadioGroupItem value="form-submitted" id="form-submitted" />
+                  <label htmlFor="form-submitted" className="text-sm text-slate-300 cursor-pointer">
+                    Form Submitted
+                  </label>
+                </div>
+              </RadioGroup>
+            </div>
+            <Badge variant="muted">7D</Badge>
+          </div>
         </div>
         <div className="mt-4 h-80 rounded-xl border border-slate-800 bg-slate-950/80 p-3">
           <Line data={lineData} options={chartOptions} />
@@ -363,6 +401,6 @@ export default function AnalyticsScreen({
           </p>
         </article>
       </section>
-    </OpsShell>
+    </OpsLayout>
   );
 }
