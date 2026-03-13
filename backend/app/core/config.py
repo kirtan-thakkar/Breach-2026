@@ -22,6 +22,8 @@ class Settings:
     EMAIL_MAX_RETRIES = int(os.getenv("EMAIL_MAX_RETRIES", "3"))
     EMAIL_BASE_RETRY_SECONDS = float(os.getenv("EMAIL_BASE_RETRY_SECONDS", "1.0"))
     EMAIL_BATCH_CONCURRENCY = int(os.getenv("EMAIL_BATCH_CONCURRENCY", "8"))
+    APP_BASE_URL = os.getenv("APP_BASE_URL", "http://localhost:8000")
+    GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY", "")
 
 def get_settings():
     return Settings()
