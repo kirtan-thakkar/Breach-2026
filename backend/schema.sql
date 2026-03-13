@@ -19,6 +19,8 @@ CREATE TABLE targets (
     email TEXT NOT NULL,
     name TEXT,
     department TEXT,
+    risk_index FLOAT DEFAULT 0.0,
+    behavioral_tags TEXT[] DEFAULT '{}',
     created_at TIMESTAMPTZ DEFAULT NOW(),
     UNIQUE(organization_id, email)
 );
@@ -29,6 +31,8 @@ CREATE TABLE templates (
     type TEXT CHECK (type IN ('phishing','credential','training')),
     subject TEXT,
     content TEXT NOT NULL,
+    is_ai_generated BOOLEAN DEFAULT FALSE,
+    ai_prompt_context JSONB,
     created_by UUID REFERENCES users(id),
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -81,4 +85,13 @@ CREATE TABLE risk_scores (
     click_rate FLOAT,
     credential_rate FLOAT,
     calculated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE ai_insights (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE,
+    insight_type TEXT,
+    summary TEXT,
+    recommendation TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW()
 );
