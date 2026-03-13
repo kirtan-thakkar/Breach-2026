@@ -1,4 +1,4 @@
-import AnalyticsScreen from "@/components/analytics/analytics-screen";
+import Analytics from "@/components/analytics";
 import { getOrgIdFromParams, loadOrgSnapshot } from "@/lib/backend";
 
 export default async function AnalyticsPage({ searchParams }) {
@@ -7,7 +7,7 @@ export default async function AnalyticsPage({ searchParams }) {
   const { summary, campaigns, highlightedCampaign, highlightedAnalytics } = await loadOrgSnapshot(orgId);
 
   return (
-    <AnalyticsScreen
+    <Analytics
       orgId={orgId}
       generatedAt={new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
       summary={summary}

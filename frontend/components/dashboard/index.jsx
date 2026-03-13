@@ -27,7 +27,7 @@ import {
   Zap,
 } from "lucide-react";
 
-import OpsShell from "@/components/ops/ops-shell";
+import OpsLayout from "@/components/ops/layout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatCampaignType } from "@/lib/backend";
@@ -173,7 +173,7 @@ function TrendChart({ values }) {
   );
 }
 
-export default function CyberDashboard({
+export default function Dashboard({
   orgId,
   summary,
   campaigns,
@@ -252,7 +252,7 @@ export default function CyberDashboard({
   ];
 
   return (
-    <OpsShell
+    <OpsLayout
       activeSection="dashboard"
       title="System Overview"
       subtitle="Monitor campaign health, target behavior, and simulated compromise signals."
@@ -392,6 +392,6 @@ export default function CyberDashboard({
           </div>
         </article>
       </section>
-    </OpsShell>
+    </OpsLayout>
   );
 }

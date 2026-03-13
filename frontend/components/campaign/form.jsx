@@ -72,7 +72,7 @@ function formatScheduleLabel(dateValue, timeValue) {
   return `${dateLabel} at ${timeValue || "09:00"}`;
 }
 
-export default function CreateCampaignForm({ orgId }) {
+export default function CampaignForm({ orgId }) {
   const router = useRouter();
 
   const [formState, setFormState] = useState({

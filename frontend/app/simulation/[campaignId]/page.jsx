@@ -1,4 +1,4 @@
-import SimulationScreen from "@/components/simulation/simulation-screen";
+import Simulation from "@/components/simulation";
 import { getOrgIdFromParams, loadCampaignDetail } from "@/lib/backend";
 
 export default async function SimulationPage({ params, searchParams }) {
@@ -10,7 +10,7 @@ export default async function SimulationPage({ params, searchParams }) {
   const { campaign, analytics } = await loadCampaignDetail(campaignId, orgId);
 
   return (
-    <SimulationScreen
+    <Simulation
       orgId={orgId}
       generatedAt={new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
       campaign={campaign}

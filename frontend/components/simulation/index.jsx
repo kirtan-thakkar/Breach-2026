@@ -21,7 +21,7 @@ import {
   Users,
 } from "lucide-react";
 
-import OpsShell from "@/components/ops/ops-shell";
+import OpsLayout from "@/components/ops/layout";
 import { Badge } from "@/components/ui/badge";
 import { formatCampaignType } from "@/lib/backend";
 
@@ -37,7 +37,7 @@ function clampPercent(value) {
   return Math.max(0, Math.min(100, numeric));
 }
 
-export default function SimulationScreen({ orgId, generatedAt, campaign, analytics }) {
+export default function Simulation({ orgId, generatedAt, campaign, analytics }) {
   const totalSent = Number(analytics?.total_sent ?? 0);
   const totalClicks = Number(analytics?.total_clicks ?? 0);
   const totalSubmissions = Number(analytics?.total_submissions ?? 0);
@@ -165,7 +165,7 @@ export default function SimulationScreen({ orgId, generatedAt, campaign, analyti
   ];
 
   return (
-    <OpsShell
+    <OpsLayout
       activeSection="simulation"
       title="Simulation Intelligence"
       subtitle="Campaign-level telemetry and behavior insight"
@@ -269,6 +269,6 @@ export default function SimulationScreen({ orgId, generatedAt, campaign, analyti
           ))}
         </div>
       </section>
-    </OpsShell>
+    </OpsLayout>
   );
 }

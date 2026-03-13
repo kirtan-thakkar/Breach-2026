@@ -1,4 +1,4 @@
-import CyberDashboard from "@/components/dashboard/cyber-dashboard";
+import Dashboard from "@/components/dashboard";
 import { getOrgIdFromParams, loadOrgSnapshot } from "@/lib/backend";
 
 export default async function DashboardPage({ searchParams }) {
@@ -7,7 +7,7 @@ export default async function DashboardPage({ searchParams }) {
   const { summary, campaigns, highlightedCampaign, highlightedAnalytics } = await loadOrgSnapshot(orgId);
 
   return (
-    <CyberDashboard
+    <Dashboard
       orgId={orgId}
       summary={summary}
       campaigns={campaigns}

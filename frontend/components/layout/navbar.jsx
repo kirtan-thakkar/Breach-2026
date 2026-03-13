@@ -2,9 +2,9 @@
 
 import { usePathname } from "next/navigation";
 
-import Navbar from "@/components/navbar";
+import NavbarComponent from "@/components/navbar";
 
-export default function NavbarShell() {
+export default function Navbar() {
   const pathname = usePathname();
 
   const isOpsRoute = ["/dashboard", "/analytics", "/campaign", "/simulation"].some((prefix) =>
@@ -17,7 +17,7 @@ export default function NavbarShell() {
 
   return (
     <section className="sticky top-4 z-50 backdrop-blur-md">
-      <Navbar />
+      <NavbarComponent />
     </section>
   );
 }

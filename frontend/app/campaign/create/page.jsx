@@ -1,7 +1,7 @@
 import { CheckCircle2 } from "lucide-react";
 
-import CreateCampaignForm from "@/components/campaign/create-campaign-form";
-import OpsShell from "@/components/ops/ops-shell";
+import CampaignForm from "@/components/campaign/form";
+import OpsLayout from "@/components/ops/layout";
 import { Button } from "@/components/ui/button";
 import { getOrgIdFromParams } from "@/lib/backend";
 
@@ -10,7 +10,7 @@ export default async function CreateCampaignPage({ searchParams }) {
   const orgId = getOrgIdFromParams(params);
 
   return (
-    <OpsShell
+    <OpsLayout
       activeSection="create-campaign"
       title="Create Campaign"
       subtitle="Configure and launch a backend-compatible simulation payload"
@@ -24,7 +24,7 @@ export default async function CreateCampaignPage({ searchParams }) {
       }
       searchPlaceholder="Search templates, campaign history..."
     >
-      <CreateCampaignForm orgId={orgId} />
-    </OpsShell>
+      <CampaignForm orgId={orgId} />
+    </OpsLayout>
   );
 }
