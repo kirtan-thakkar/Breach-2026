@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 from typing import Optional, List
 from datetime import datetime
 from enum import Enum
@@ -28,7 +28,7 @@ class TargetCreate(TargetBase):
 class Target(TargetBase):
     id: str
     risk_index: float = 0.0
-    behavioral_tags: List[str] = []
+    behavioral_tags: List[str] = Field(default_factory=list)
     created_at: datetime
     
     class Config:

@@ -1,8 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, HTTPException
 from app.services.ai_service import ai_service
 from app.services.ml_service import ml_service
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import Optional
 
 router = APIRouter()
 
@@ -20,15 +20,15 @@ async def generate_template(request: PhishingRequest):
     try:
         content = await ai_service.generate_phishing_content(request.context, request.department)
         return content
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    except Exception:
+        raise HTTPException(status_code=500, detail="Template generation failed")
 
 @router.post("/predict-risk")
 async def predict_risk(request: RiskRequest):
     stats = {
         'email_opened': request.opened,
         'link_clicked': request.clicked,
-        'credential_submitted': request.submitted
+        'form_submitted': request.submitted
     }
     score = ml_service.predict_risk_score(stats)
     
