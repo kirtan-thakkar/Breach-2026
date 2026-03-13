@@ -1,13 +1,13 @@
 import Container from "@/components/Container";
 
-const LoginPage = () => {
+const CampaignPage = () => {
   return (
     <section>
       <div>
-        <Container>Login page</Container>
+        <Container>Campaign page</Container>
       </div>
     </section>
   );
 };
 
-export default LoginPage;
+export default CampaignPage;
