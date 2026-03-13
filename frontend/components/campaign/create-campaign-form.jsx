@@ -2,9 +2,11 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { AlertCircle, CalendarClock, CheckCircle2, LoaderCircle, Send } from "lucide-react";
+import { AlertCircle, CalendarDays, CheckCircle2, Clock3, LoaderCircle, Send } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { getBackendBaseUrl } from "@/lib/backend";
 
 const CAMPAIGN_TYPES = [
@@ -14,6 +16,62 @@ const CAMPAIGN_TYPES = [
   { value: "social_engineering", label: "Social Engineering" },
 ];
 
+function toDateInputValue(date) {
+  if (!(date instanceof Date) || Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  const year = String(date.getFullYear());
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+
+function fromDateInputValue(value) {
+  if (!value) {
+    return undefined;
+  }
+
+  const [year, month, day] = value.split("-").map(Number);
+  if (!year || !month || !day) {
+    return undefined;
+  }
+
+  const parsedDate = new Date(year, month - 1, day);
+  return Number.isNaN(parsedDate.getTime()) ? undefined : parsedDate;
+}
+
+function buildScheduledIso(dateValue, timeValue) {
+  const scheduledDate = fromDateInputValue(dateValue);
+  if (!scheduledDate) {
+    return null;
+  }
+
+  const [hoursRaw, minutesRaw] = (timeValue || "09:00").split(":");
+  const hours = Number(hoursRaw);
+  const minutes = Number(minutesRaw);
+
+  scheduledDate.setHours(Number.isFinite(hours) ? hours : 9, Number.isFinite(minutes) ? minutes : 0, 0, 0);
+
+  return scheduledDate.toISOString();
+}
+
+function formatScheduleLabel(dateValue, timeValue) {
+  const scheduledDate = fromDateInputValue(dateValue);
+  if (!scheduledDate) {
+    return "Pick campaign launch date";
+  }
+
+  const dateLabel = scheduledDate.toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+
+  return `${dateLabel} at ${timeValue || "09:00"}`;
+}
+
 export default function CreateCampaignForm({ orgId }) {
   const router = useRouter();
 
@@ -22,7 +80,8 @@ export default function CreateCampaignForm({ orgId }) {
     description: "",
     type: "phishing",
     template_id: "template-phishing-01",
-    scheduled_at: "",
+    scheduled_date: "",
+    scheduled_time: "09:00",
   });
   const [status, setStatus] = useState({ state: "idle", message: "" });
 
@@ -33,13 +92,20 @@ export default function CreateCampaignForm({ orgId }) {
       type: formState.type,
       template_id: formState.template_id,
       organization_id: orgId,
-      scheduled_at: formState.scheduled_at ? new Date(formState.scheduled_at).toISOString() : null,
+      scheduled_at: buildScheduledIso(formState.scheduled_date, formState.scheduled_time),
     };
   }, [formState, orgId]);
 
   function handleInputChange(event) {
     const { name, value } = event.target;
     setFormState((previous) => ({ ...previous, [name]: value }));
+  }
+
+  function handleDateSelect(nextDate) {
+    setFormState((previous) => ({
+      ...previous,
+      scheduled_date: nextDate ? toDateInputValue(nextDate) : "",
+    }));
   }
 
   async function handleSubmit(event) {
@@ -90,7 +156,7 @@ export default function CreateCampaignForm({ orgId }) {
             value={formState.title}
             onChange={handleInputChange}
             required
-            placeholder="Q2 Credential Simulation"
+            placeholder="Q2 Finance Credential Exposure Drill"
             className="h-11 w-full rounded-xl border border-slate-700 bg-slate-950/70 px-3 text-sm text-slate-100 outline-none transition focus:border-emerald-400/50"
           />
         </label>
@@ -102,7 +168,7 @@ export default function CreateCampaignForm({ orgId }) {
             value={formState.description}
             onChange={handleInputChange}
             rows={4}
-            placeholder="Simulate payroll urgency with secure remediation flow"
+            placeholder="Simulate a payroll-change request and route users to a remediation training page."
             className="w-full rounded-xl border border-slate-700 bg-slate-950/70 px-3 py-2 text-sm text-slate-100 outline-none transition focus:border-emerald-400/50"
           />
         </label>
@@ -131,7 +197,7 @@ export default function CreateCampaignForm({ orgId }) {
               value={formState.template_id}
               onChange={handleInputChange}
               required
-              placeholder="template-phishing-01"
+              placeholder="template-phishing-payroll-v2"
               className="h-11 w-full rounded-xl border border-slate-700 bg-slate-950/70 px-3 text-sm text-slate-100 outline-none transition focus:border-emerald-400/50"
             />
           </label>
@@ -139,16 +205,56 @@ export default function CreateCampaignForm({ orgId }) {
 
         <label className="block space-y-1">
           <span className="text-xs uppercase tracking-[0.14em] text-slate-500">Schedule (optional)</span>
-          <div className="relative">
-            <input
-              type="datetime-local"
-              name="scheduled_at"
-              value={formState.scheduled_at}
-              onChange={handleInputChange}
-              className="h-11 w-full rounded-xl border border-slate-700 bg-slate-950/70 px-3 text-sm text-slate-100 outline-none transition focus:border-emerald-400/50"
-            />
-            <CalendarClock className="pointer-events-none absolute right-3 top-3.5 size-4 text-slate-500" />
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className={`h-11 w-full justify-start border-slate-700 bg-slate-950 text-left text-sm  ${
+                    formState.scheduled_date ? "text-slate-100" : "text-slate-400"
+                  }`}
+                >
+                  <CalendarDays className="size-4" />
+                  {formatScheduleLabel(formState.scheduled_date, formState.scheduled_time)}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent
+                align="start"
+                className="w-auto border-slate-700 bg-slate-950 p-0 text-slate-100"
+              >
+                <Calendar
+                  mode="single"
+                  selected={fromDateInputValue(formState.scheduled_date)}
+                  onSelect={handleDateSelect}
+                  disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+
+            <div className="relative">
+              <input
+                type="time"
+                name="scheduled_time"
+                value={formState.scheduled_time}
+                onChange={handleInputChange}
+                disabled={!formState.scheduled_date}
+                className="h-11 w-full rounded-xl border border-slate-700 bg-slate-950/70 px-3 pr-10 text-sm text-slate-100 outline-none transition focus:border-emerald-400/50 disabled:cursor-not-allowed disabled:opacity-50"
+              />
+              <Clock3 className="pointer-events-none absolute right-3 top-3.5 size-4 text-slate-500" />
+            </div>
           </div>
+
+          {formState.scheduled_date ? (
+            <button
+              type="button"
+              onClick={() => setFormState((previous) => ({ ...previous, scheduled_date: "" }))}
+              className="pt-1 text-left text-xs text-slate-400 underline-offset-4 hover:text-slate-200 hover:underline"
+            >
+              Clear schedule
+            </button>
+          ) : null}
         </label>
 
         <div className="flex flex-wrap items-center gap-2 pt-2">
