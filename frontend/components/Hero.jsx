@@ -6,6 +6,8 @@ import { DM_Sans } from "next/font/google";
 import { Safari } from "./ui/safari";
 import { Highlighter } from "@/components/ui/highlighter";
 import { motion } from "motion/react";
+import ChoosePage from "./Choose";
+import HowItWorks from "./HowItWorks";
 
 const instrumentalSerif = Instrument_Serif({
   subsets: ["latin"],
@@ -37,13 +39,13 @@ const HeroPage = () => {
             <h1
               className={`  font-medium text-6xl  tracking-tighter text-center text-primary `}
             >
-              Code into a beautiful image <br></br>{" "}
+              Simulate real phishing attacks <br></br>{" "}
               <Highlighter action="underline" color="#FF9800">
-                Ai-Powered Code{" "}
+                AI-powered awareness{" "}
               </Highlighter>
               &nbsp;to<br></br>
               <span className={`${instrumentalSerif.className} text-7xl`}>
-                "Image generator"
+                reduce human risk
               </span>
             </h1>
           </motion.div>
@@ -62,12 +64,14 @@ const HeroPage = () => {
             }}
             className="text-lg text-neutral-500 text-center tracking-normal w-full max-w-xl"
           >
-            Transform your code into stunning visuals with our AI-powered code
-            to image generator. Whether you're a developer, designer, or content
-            creator, our tool allows you to effortlessly convert your code into
+            Breach 2026 helps corporate security teams run phishing and social
+            engineering simulations for employees and administrators. Track
+            clicks, credential submission attempts, and response behavior in one
+            centralized dashboard.
           </motion.p>
 
-          <motion.div className="flex justify-center w-full"
+          <motion.div
+            className="flex justify-center w-full"
             initial={{
               opacity: 0,
               filter: "blur(12px)",
@@ -86,71 +90,59 @@ const HeroPage = () => {
               variant="default"
               className={`${dmSans.className} text-lg mt-3`}
             >
-              Get Started
+              Launch a Campaign
             </RainbowButton>
           </motion.div>
 
           <motion.div
-          initial={{
-            y:30,
-            opacity:0,
-            filter:"blur(10px)"
-          }} 
-          whileInView={{
-            opacity:1,
-            y:0,
-            filter:"blur(0px)",
-          }}
-          transition={{
-            duration:0.3,
-            delay:0.5,
-            ease:"easeInOut"
-          }}
-          className="py-14 w-300.75">
+            initial={{
+              y: 30,
+              opacity: 0,
+              filter: "blur(10px)",
+            }}
+            whileInView={{
+              opacity: 1,
+              y: 0,
+              filter: "blur(0px)",
+            }}
+            transition={{
+              duration: 0.3,
+              delay: 0.5,
+              ease: "easeInOut",
+            }}
+            className="w-full max-w-300 py-14"
+          >
             <Safari
-              url="magicui.design"
-              imageSrc="https://placehold.co/1200x750?text=Hello+World"
+              url="breach2026.app/campaigns"
+              imageSrc="https://placehold.co/1200x750?text=Phishing+Simulation+Analytics+Dashboard"
             />
           </motion.div>
-
-          {/* Add textReveal component by urself if that does not work iterate with below */}
-          {/* <div className="h-screen flex justify-center items-center">
-            <ScrollReveal
-              baseOpacity={0.1}
-              enableBlur={true}
-              baseRotation={3}
-              blurStrength={5}
-              staggerDelay={0.05}
-              containerClassName="text-center leading-[3rem]"
-              textClassName="max-w-2xl mx-auto block"
-            >
-              Simplicity, performance, and security, empowering you to navigate
-              the digital world with confidence and agility.
-            </ScrollReveal>
-          </div> */}
           <motion.h2
-          initial={{
-            opacity:0,
-            filter:"blur(12px)",
-            y:10
-          }}
-          whileInView={{
-            opacity:1,
-            filter:"blur(0px)",
-            y:0
-          }}
-          transition={{
-            duration:0.4,
-            delay:0.2,
-            ease:"easeInOut"
-          }}
-          className="py-18 mt-6  text-primary text-center tracking-tighter leading-13 max-w-4xl text-5xl font-medium ">
-            Simplicity, performance, and security,<br></br> empowering you to
-            navigate the digital <br></br>world with confidence and agility.
+            initial={{
+              opacity: 0,
+              filter: "blur(12px)",
+              y: 10,
+            }}
+            whileInView={{
+              opacity: 1,
+              filter: "blur(0px)",
+              y: 0,
+            }}
+            transition={{
+              duration: 0.4,
+              delay: 0.2,
+              ease: "easeInOut",
+            }}
+            className="py-18 mt-6  text-primary text-center tracking-tighter leading-13 max-w-4xl text-5xl font-medium "
+          >
+            Detect phishing vulnerability before attackers do.<br></br>
+            Build targeted training with<br></br> data-driven security insights.
           </motion.h2>
         </div>
         <div>
+          <ChoosePage />
         </div>
+        <HowItWorks />
       </Container>
     </div>
   );

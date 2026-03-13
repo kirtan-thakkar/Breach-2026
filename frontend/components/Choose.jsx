@@ -10,31 +10,33 @@ const ChoosePage = () => {
   const whyChooseGrid = [
     {
       img: <IconHome size={40} />,
-      title: "Maximum Security",
+      title: "Dynamic Email Templating",
       description:
-        "Your assets are protected with cutting-edge security protocols.",
+        "Generate realistic phishing emails that adapt to campaign context, communication style, and department tone.",
     },
     {
       img: <IconBolt size={40} />,
-      title: "Instant Transactions",
-      description: "Execute your transactions in real-time, without delays.",
+      title: "Behavior Tracking",
+      description:
+        "Capture critical events including link clicks, credential attempts, response actions, and timestamps.",
     },
     {
       img: <IconProgressCheck size={40} />,
-      title: "Optimized Fees",
-      description: "Benefit from some of the lowest fees on the market.",
+      title: "Centralized Risk Analytics",
+      description:
+        "Measure phishing click rates, credential submission rates, and vulnerability metrics across departments.",
     },
     {
       img: <IconDeviceImac size={40} />,
-      title: "Premium Interface ",
+      title: "Peer Benchmarking Reports",
       description:
-        "An intuitive design that’s easy to use, even for beginners.",
+        "Compare awareness performance against anonymous industry averages to guide targeted training decisions.",
     },
   ];
   return (
     <div>
       <Container>
-        <div className="py-30 mt-10 h-screen flex flex-col items-center gap-4">
+        <div className="py-30 mt-10  flex flex-col items-center gap-4">
           <motion.div
           initial={{
             opacity:0,
@@ -53,7 +55,7 @@ const ChoosePage = () => {
           }}
           >
             <h1 className="text-primary tracking-tighter text-5xl font-medium">
-              Why Choose App-Name?
+              Why Security Teams Choose Breach 2026
             </h1>
           </motion.div>
           <motion.div
@@ -73,13 +75,13 @@ const ChoosePage = () => {
             ease:"easeInOut"
           }}
           >
-            <p className="text-md text-secondary font-medium text-center">
-              Benefits designed to provide a seamless,<br></br> secure, and
-              accessible experience for all users.
+            <p className="text-md text-neutral-500 font-medium text-center">
+              Built for real-world phishing simulation campaigns,<br></br>
+              measurable behavior tracking, and actionable awareness insights.
             </p>
           </motion.div>
 
-          <div className="h-56 grid grid-cols-1 w-full md:grid-cols-4 gap-5 divide-x divide-y divide-neutral-300 border-neutral-300 mt-10 shadow-aceternity">
+          <div className="grid grid-cols-1 w-full md:grid-cols-2 xl:grid-cols-4 gap-4 mt-10">
             {whyChooseGrid.map((item, index) => (
               <motion.div
                 key={index}
@@ -100,13 +102,13 @@ const ChoosePage = () => {
                 }}
                 className="w-full"
               >
-                <div className="flex divide-x flex-col items-start gap-4 ">
-                  <div className="ml-2 mt-4 flex items-center justify-center  rounded-[50%] bg-neutral-200 border border-neutral-300 size-16">
+                <div className="h-full rounded-3xl border border-neutral-200 bg-white/80 p-5 shadow-aceternity backdrop-blur-sm transition-colors duration-300 hover:border-amber-300 flex flex-col items-start gap-4">
+                  <div className="flex items-center justify-center rounded-[50%] border border-neutral-300 size-16 text-neutral-600">
                     {item.img}
                   </div>
-                  <div className="px-4 flex flex-col items-start gap-2">
-                    <h4 className="text-secondary font-medium">{item.title}</h4>
-                    <p className="text-primary font-medium">{item.description}</p>
+                  <div className="flex flex-col items-start gap-2">
+                    <h4 className="text-primary text-xl tracking-tight font-medium">{item.title}</h4>
+                    <p className="text-neutral-600 font-medium leading-6">{item.description}</p>
                   </div>
                 </div>
               </motion.div>
