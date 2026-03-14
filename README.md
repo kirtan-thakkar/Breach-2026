@@ -1,7 +1,5 @@
 # Phishlytics – Cybersecurity Awareness Simulation Platform
 
-![Cybersecurity Dashboard](https://phishlytics.vercel.app/)
-
 Phishlytics is a full-stack cybersecurity awareness simulation platform that allows organizations to run controlled phishing exercises, track employee responses, and generate actionable security insights.
 
 Built during **Breach 2026 Hackathon at Pandit Deendayal Energy University (PDEU)**, the platform demonstrates how organizations can move from **guessing security risks → measuring human security behavior**.
@@ -45,8 +43,6 @@ Generate recommendations for administrators, managers, and employees based on ph
 ---
 
 # Platform Architecture
-
-![System Architecture](https://images.unsplash.com/photo-1558494949-ef010cbdcc31)
 
 The system uses a **modern full-stack architecture** consisting of:
 
