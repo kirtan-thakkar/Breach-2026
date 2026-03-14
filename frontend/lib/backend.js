@@ -1,3 +1,4 @@
+backend.js 
 export const FALLBACK_CAMPAIGNS = [];
 
 export function getBackendBaseUrl() {
@@ -111,33 +112,47 @@ export function pickHighlightedCampaign(campaigns) {
 }
 
 export async function loadOrgSnapshot(orgId, token) {
-  if (!orgId) {
-    return {
-      summary: { total_campaigns: 0, total_targets: 0, risk_score: 0, trend: "stable" },
-      campaigns: [],
-      highlightedCampaign: null,
-      highlightedAnalytics: null,
-    };
-  }
-
   try {
     const authHeader = token ? { Authorization: `Bearer ${token}` } : {};
-    const [summary, campaigns] = await Promise.all([
-      fetchSafe(`/api/v1/analytics/summary/${orgId}`, 20, { headers: authHeader }),
-      fetchSafe(`/api/v1/campaigns?org_id=${orgId}`, 20, { headers: authHeader }),
+    const orgQuery = orgId ? `?org_id=${encodeURIComponent(orgId)}` : "";
+
+    const [campaigns, targets] = await Promise.all([
+      fetchSafe(`/api/v1/campaigns${orgQuery}`, 20, { headers: authHeader }),
+      fetchSafe(`/api/v1/targets${orgQuery}`, 20, { headers: authHeader }),
     ]);
 
     const safeCampaigns = Array.isArray(campaigns) ? campaigns : [];
+    const safeTargets = Array.isArray(targets) ? targets : [];
+    const inferredOrgId =
+      orgId ||
+      safeTargets.find((entry) => entry?.organization_id)?.organization_id ||
+      safeCampaigns.find((entry) => entry?.organization_id)?.organization_id ||
+      "";
+
+    let summary = null;
+    let overview = null;
+    let employees = [];
+    if (inferredOrgId) {
+      [summary, overview, employees] = await Promise.all([
+        fetchSafe(`/api/v1/analytics/summary/${inferredOrgId}`, 20, { headers: authHeader }),
+        fetchSafe(`/api/v1/analytics/overview/${inferredOrgId}`, 20, { headers: authHeader }),
+        fetchSafe(`/api/v1/analytics/employees/${inferredOrgId}`, 20, { headers: authHeader }),
+      ]);
+    }
+
+    const safeEmployees = Array.isArray(employees) ? employees : [];
     const highlightedCampaign = pickHighlightedCampaign(safeCampaigns);
     
     let campaignAnalytics = null;
     if (highlightedCampaign?.id) {
-      campaignAnalytics = await fetchSafe(`/api/v1/analytics/campaign/${highlightedCampaign.id}`);
+      campaignAnalytics = await fetchSafe(`/api/v1/analytics/campaign/${highlightedCampaign.id}`, 20, {
+        headers: authHeader,
+      });
     }
 
     const safeSummary = summary || {
       total_campaigns: safeCampaigns.length,
-      total_targets: 0,
+      total_targets: safeTargets.length,
       risk_score: 0,
       trend: "stable",
       click_rate: campaignAnalytics?.click_rate ?? 0,
@@ -147,6 +162,9 @@ export async function loadOrgSnapshot(orgId, token) {
     return {
       summary: safeSummary,
       campaigns: safeCampaigns,
+      targets: safeTargets,
+      employees: safeEmployees,
+      overview: overview || null,
       highlightedCampaign,
       highlightedAnalytics: campaignAnalytics,
     };
@@ -155,6 +173,9 @@ export async function loadOrgSnapshot(orgId, token) {
     return {
       summary: { total_campaigns: 0, total_targets: 0, risk_score: 0, trend: "stable" },
       campaigns: [],
+      targets: [],
+      employees: [],
+      overview: null,
       highlightedCampaign: null,
       highlightedAnalytics: null,
     };
