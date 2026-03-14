@@ -158,7 +158,7 @@ export default function PlansSection() {
             whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
             viewport={{ once: true, amount: 0.2 }}
             transition={{ duration: 0.32, delay: index * 0.08, ease: "easeOut" }}
-            className="border-t border-breach-border md:border-r md:border-t-0 md:[&:last-child]:border-r-0"
+            className="border-t border-breach-border md:border-r md:border-t-0 md:last:border-r-0"
           >
             <PlanCard plan={plan} billingMode={billingMode} />
           </motion.div>
