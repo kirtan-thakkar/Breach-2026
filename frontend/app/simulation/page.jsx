@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from "next-view-transitions";
 import { ArrowRight, Radar } from "lucide-react";
 
 import OpsLayout from "@/components/ops/layout";

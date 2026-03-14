@@ -1,150 +1,83 @@
 "use client";
-import { Instrument_Serif } from "next/font/google";
+import { Link } from "next-view-transitions";
 import Container from "./Container";
-import { RainbowButton } from "./ui/rainbow-button";
-import { DM_Sans } from "next/font/google";
 import { Safari } from "./ui/safari";
-import { Highlighter } from "@/components/ui/highlighter";
+import { Button } from "@/components/ui/button";
 import { motion } from "motion/react";
-import ChoosePage from "./Choose";
-import HowItWorks from "./HowItWorks";
 
-const instrumentalSerif = Instrument_Serif({
-  subsets: ["latin"],
-  weight: ["400"],
-});
-const dmSans = DM_Sans({
-  subsets: ["latin"],
-  weight: ["400", "500", "700"],
-});
 const HeroPage = () => {
   return (
-    <div className="py-24">
-      <Container>
-        <div className="flex flex-col items-center justify-center gap-6">
-          <motion.div
-            initial={{
-              opacity: 0,
-              filter: "blur(12px)",
-            }}
-            whileInView={{
-              opacity: 1,
-              filter: "blur(0px)",
-            }}
-            transition={{
-              duration: 0.4,
-              ease: "easeOut",
-            }}
-          >
-            <h1
-              className={`  font-medium text-6xl  tracking-tighter text-center text-primary `}
-            >
-              Simulate real phishing attacks <br></br>{" "}
-              <Highlighter action="underline" color="#FF9800">
-                AI-powered awareness{" "}
-              </Highlighter>
-              &nbsp;to<br></br>
-              <span className={`${instrumentalSerif.className} text-7xl`}>
-                reduce human risk
-              </span>
-            </h1>
-          </motion.div>
-          <motion.p
-            initial={{
-              opacity: 0,
-              filter: "blur(12px)",
-            }}
-            whileInView={{
-              opacity: 1,
-              filter: "blur(0px)",
-            }}
-            transition={{
-              duration: 0.3,
-              delay: 0.2,
-            }}
-            className="text-lg text-neutral-500 text-center tracking-normal w-full max-w-xl"
-          >
-            Breach 2026 helps corporate security teams run phishing and social
-            engineering simulations for employees and administrators. Track
-            clicks, credential submission attempts, and response behavior in one
-            centralized dashboard.
-          </motion.p>
+    <section className="relative isolate flex min-h-screen items-center overflow-hidden bg-breach-bg px-1 py-12 text-breach-text sm:px-2 sm:py-16">
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute inset-0 bg-breach-aura" />
+        <div className="absolute -left-22 top-14 h-70 w-70 rounded-full bg-breach-accent/12 blur-3xl" />
+        <div className="absolute right-0 top-22 h-90 w-90 rounded-full bg-breach-accent-2/12 blur-3xl" />
+      </div>
 
-          <motion.div
-            className="flex justify-center w-full"
-            initial={{
-              opacity: 0,
-              filter: "blur(12px)",
-            }}
-            whileInView={{
-              opacity: 1,
-              filter: "blur(0px)",
-            }}
-            transition={{
-              duration: 0.3,
-              delay: 0.4,
-            }}
-          >
-            <RainbowButton
-              size="lg"
-              variant="default"
-              className={`${dmSans.className} text-lg mt-3`}
+      <Container className="relative z-10">
+        <div className="mx-auto flex w-full max-w-5xl flex-col items-center gap-7 text-center">
+            <motion.p
+              initial={{ opacity: 0, y: 10, filter: "blur(8px)" }}
+              whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+              viewport={{ once: true, amount: 0.6 }}
+              transition={{ duration: 0.38, ease: "easeOut" }}
+              className="inline-flex items-center gap-2 rounded-full border border-breach-accent/30 bg-breach-accent/10 px-3 py-1 text-xs font-medium uppercase tracking-[0.16em] text-emerald-200"
             >
-              Launch a Campaign
-            </RainbowButton>
-          </motion.div>
+              Security Operations Platform
+            </motion.p>
 
-          <motion.div
-            initial={{
-              y: 30,
-              opacity: 0,
-              filter: "blur(10px)",
-            }}
-            whileInView={{
-              opacity: 1,
-              y: 0,
-              filter: "blur(0px)",
-            }}
-            transition={{
-              duration: 0.3,
-              delay: 0.5,
-              ease: "easeInOut",
-            }}
-            className="w-full max-w-300 py-14"
-          >
-            <Safari
-              url="breach2026.app/campaigns"
-              imageSrc="https://placehold.co/1200x750?text=Phishing+Simulation+Analytics+Dashboard"
-            />
-          </motion.div>
-          <motion.h2
-            initial={{
-              opacity: 0,
-              filter: "blur(12px)",
-              y: 10,
-            }}
-            whileInView={{
-              opacity: 1,
-              filter: "blur(0px)",
-              y: 0,
-            }}
-            transition={{
-              duration: 0.4,
-              delay: 0.2,
-              ease: "easeInOut",
-            }}
-            className="py-18 mt-6  text-primary text-center tracking-tighter leading-13 max-w-4xl text-5xl font-medium "
-          >
-            Detect phishing vulnerability before attackers do.<br></br>
-            Build targeted training with<br></br> data-driven security insights.
-          </motion.h2>
+            <motion.h1
+              initial={{ opacity: 0, y: 16, filter: "blur(10px)" }}
+              whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+              viewport={{ once: true, amount: 0.4 }}
+              transition={{ duration: 0.42, delay: 0.06, ease: "easeOut" }}
+              className="max-w-4xl text-5xl leading-[1.03] font-semibold tracking-[-0.03em] text-breach-text sm:text-6xl md:text-7xl"
+            >
+              Take Control Of
+              <br />
+              Human Risk Exposure
+            </motion.h1>
+
+            <motion.p
+              initial={{ opacity: 0, y: 10, filter: "blur(8px)" }}
+              whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+              viewport={{ once: true, amount: 0.5 }}
+              transition={{ duration: 0.35, delay: 0.14 }}
+              className="w-full max-w-3xl text-base leading-relaxed text-breach-muted sm:text-lg"
+            >
+              Breach 2026 helps corporate security teams run phishing and social engineering simulations for employees and administrators. Track clicks, credential submission attempts, and response behavior in one centralized dashboard.
+            </motion.p>
+
+            <motion.div
+              initial={{ opacity: 0, y: 8, filter: "blur(8px)" }}
+              whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+              viewport={{ once: true, amount: 0.7 }}
+              transition={{ duration: 0.34, delay: 0.22 }}
+              className="flex w-full justify-center"
+            >
+              <Button
+                asChild
+                className="h-12 rounded-full bg-breach-accent px-8 text-base font-semibold text-slate-950 hover:bg-emerald-300"
+              >
+                <Link href="/campaign/create">Launch a Campaign</Link>
+              </Button>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 18, filter: "blur(10px)" }}
+              whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+              viewport={{ once: true, amount: 0.3 }}
+              transition={{ duration: 0.42, delay: 0.3, ease: "easeOut" }}
+              className="w-full max-w-5xl pt-6 sm:pt-8"
+            >
+              <Safari
+                url="breach2026.app/dashboard"
+                imageSrc="https://placehold.co/1200x750/03060d/e2e8f0?text=Breach+2026+Operations+Dashboard"
+              />
+            </motion.div>
         </div>
-        <div>
-          <ChoosePage />
-        </div>
-        <HowItWorks />
       </Container>
-    </div>
+    </section>
   );
 };
 export default HeroPage;

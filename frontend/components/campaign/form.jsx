@@ -211,8 +211,8 @@ export default function CampaignForm({ orgId }) {
                 <Button
                   type="button"
                   variant="outline"
-                  className={`h-11 w-full justify-start border-slate-700 bg-slate-950 text-left text-sm  ${
-                    formState.scheduled_date ? "text-slate-100" : "text-slate-400"
+                  className={`h-11 w-full justify-start border-slate-600 bg-slate-900/90 text-left text-sm hover:bg-slate-800 ${
+                    formState.scheduled_date ? "text-slate-100" : "text-slate-200"
                   }`}
                 >
                   <CalendarDays className="size-4" />

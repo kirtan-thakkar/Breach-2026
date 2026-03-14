@@ -6,6 +6,24 @@
 
 @theme inline {
   --shadow-aceternity: 0px 2px 3px -1px rgba(0, 0, 0, 0.1), 0px 1px 0px 0px rgba(25, 28, 33, 0.02), 0px 0px 0px 1px rgba(25, 28, 33, 0.08);
+  --shadow-breach-glow: 0 0 0 1px rgba(15, 23, 42, 0.7), 0 24px 48px -28px rgba(16, 185, 129, 0.35);
+
+  --color-breach-bg: #03060d;
+  --color-breach-surface: #02040a;
+  --color-breach-panel: #020712;
+  --color-breach-border: #1e293b;
+  --color-breach-text: #f1f5f9;
+  --color-breach-muted: #94a3b8;
+  --color-breach-accent: #34d399;
+  --color-breach-accent-2: #6366f1;
+  --color-breach-accent-3: #0ea5e9;
+
+  --background-image-breach-grid: linear-gradient(to right, rgba(30, 41, 59, 0.32) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(30, 41, 59, 0.24) 1px, transparent 1px);
+  --background-image-breach-aura: radial-gradient(circle at 10% 8%, rgba(16, 185, 129, 0.16), transparent 34%),
+    radial-gradient(circle at 86% 18%, rgba(99, 102, 241, 0.16), transparent 36%),
+    radial-gradient(circle at 52% 92%, rgba(14, 165, 233, 0.12), transparent 34%);
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-sans);

@@ -31,6 +31,7 @@ export function Safari({
         ...style,
       }}
       {...props}>
+      <div className="pointer-events-none absolute -top-8 left-1/2 z-20 h-18 w-[72%] -translate-x-1/2 rounded-full bg-emerald-400/28 blur-3xl" />
       {hasVideo && (
         <div
           className="pointer-events-none absolute z-0 overflow-hidden"
@@ -114,16 +115,14 @@ export function Safari({
               fill="#A3A3A3" />
           </g>
 
-          <g className="mix-blend-luminosity">
-            <text
-              x="580"
-              y="30"
-              fill="#A3A3A3"
-              fontSize="12"
-              fontFamily="Arial, sans-serif">
-              {url}
-            </text>
-          </g>
+          <text
+            x="580"
+            y="30"
+            fill="#111111"
+            fontSize="12"
+            fontFamily="Arial, sans-serif">
+            {url}
+          </text>
 
           {mode === "default" ? (
             <>

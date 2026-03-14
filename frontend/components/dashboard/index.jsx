@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { Link } from "next-view-transitions";
 import { useMemo } from "react";
 import { motion } from "motion/react";
 import {
@@ -27,9 +27,18 @@ import {
   Zap,
 } from "lucide-react";
 
+import AiPanel from "@/components/Ai";
 import OpsLayout from "@/components/ops/layout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { formatCampaignType } from "@/lib/backend";
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Filler, Tooltip);
@@ -283,36 +292,66 @@ export default function Dashboard({
           <TrendChart values={riskTrendValues} />
         </article>
 
-        <article className="rounded-2xl border border-slate-800 bg-slate-950/75 p-4 sm:p-5">
-          <div className="flex items-center justify-between gap-2">
-            <p className="flex items-center gap-2 text-lg font-semibold text-slate-100">
-              <Bot className="size-4 text-violet-300" />
-              GenAI Failure Intelligence
-            </p>
-            <Badge variant="muted">{aiInsights.length} insights</Badge>
-          </div>
+        <Dialog>
+          <article className="rounded-2xl border border-slate-800 bg-slate-950/75 p-4 sm:p-5">
+            <div className="flex items-center justify-between gap-2">
+              <p className="flex items-center gap-2 text-lg font-semibold text-slate-100">
+                <Bot className="size-4 text-violet-300" />
+                GenAI Failure Intelligence
+              </p>
+              <Badge variant="muted">{aiInsights.length} insights</Badge>
+            </div>
 
-          <div className="mt-4 rounded-xl border border-amber-500/20 bg-amber-500/10 p-3">
-            <p className="text-xs uppercase tracking-[0.14em] text-amber-200">Highlighted Campaign</p>
-            <p className="mt-1 text-base font-semibold text-slate-100">
-              {featuredCampaign ? featuredCampaign.title : "No campaigns available"}
-            </p>
-            {featuredCampaign ? (
-              <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
-                <Badge variant={STATUS_VARIANT[featuredCampaign.status] || "muted"}>{featuredCampaign.status}</Badge>
-                <span className="text-slate-300">{formatCampaignType(featuredCampaign.type)}</span>
-              </div>
-            ) : null}
-          </div>
+            <div className="mt-4 rounded-xl border border-amber-500/20 bg-amber-500/10 p-3">
+              <p className="text-xs uppercase tracking-[0.14em] text-amber-200">Highlighted Campaign</p>
+              <p className="mt-1 text-base font-semibold text-slate-100">
+                {featuredCampaign ? featuredCampaign.title : "No campaigns available"}
+              </p>
+              {featuredCampaign ? (
+                <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+                  <Badge variant={STATUS_VARIANT[featuredCampaign.status] || "muted"}>{featuredCampaign.status}</Badge>
+                  <span className="text-slate-300">{formatCampaignType(featuredCampaign.type)}</span>
+                </div>
+              ) : null}
+            </div>
 
-          <div className="mt-4 space-y-2">
-            {aiInsights.map((insight) => (
-              <div key={insight.id} className="rounded-xl border border-slate-800 bg-slate-950/70 p-3 text-sm text-slate-300">
-                {insight.text}
-              </div>
-            ))}
-          </div>
-        </article>
+            <div className="mt-4 space-y-2">
+              {aiInsights.map((insight) => (
+                <div key={insight.id} className="rounded-xl border border-slate-800 bg-slate-950/70 p-3 text-sm text-slate-300">
+                  {insight.text}
+                </div>
+              ))}
+            </div>
+
+            <DialogTrigger asChild>
+              <Button className="mt-4 h-10 w-full bg-violet-500 text-white hover:bg-violet-400">
+                Open AI Failure Coach
+              </Button>
+            </DialogTrigger>
+          </article>
+
+          <DialogContent
+            className="max-h-[88vh] overflow-hidden border-slate-800 bg-slate-950 p-0 text-slate-100 sm:max-w-4xl"
+          >
+            <DialogHeader className="border-b border-slate-800 px-5 py-4">
+              <DialogTitle className="flex items-center gap-2 text-slate-100">
+                <Bot className="size-4 text-violet-300" />
+                AI Security Coach
+              </DialogTitle>
+              <DialogDescription className="text-slate-400">
+                Access AI directly from dashboard and review failure patterns with actionable guidance.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="max-h-[calc(88vh-74px)] overflow-y-auto p-4 sm:p-5">
+              <AiPanel
+                highlightedCampaignTitle={featuredCampaign?.title}
+                clickRate={clickRate}
+                compromiseRate={compromiseRate}
+              />
+            </div>
+          </DialogContent>
+        </Dialog>
       </section>
 
       <section className="grid gap-4 xl:grid-cols-[1.4fr_1fr]">

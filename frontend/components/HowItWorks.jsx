@@ -1,92 +1,85 @@
 "use client";
 
 import { motion } from "motion/react";
-import { IconCode, IconSparkles, IconShare } from "@tabler/icons-react";
+import { Link } from "next-view-transitions";
+import { ArrowUpRight } from "lucide-react";
 
 const steps = [
   {
-    step: "Step 01",
-    title: "Create a simulation campaign",
+    step: "1",
+    title: "Create your simulation",
     description:
-      "Select target employees, campaign type, and delivery scope for your phishing awareness assessment.",
-    icon: IconCode,
+      "Pick target groups, campaign style, and timing windows by team risk profile.",
+    meta: ["Audience: Finance + Operations", "Template: Invoice lure", "Delivery: Staggered rollout"],
   },
   {
-    step: "Step 02",
-    title: "Launch dynamic phishing scenarios",
+    step: "2",
+    title: "Launch and monitor in real time",
     description:
-      "Generate contextual phishing emails and simulation links that feel realistic to each department.",
-    icon: IconSparkles,
+      "Track opens, clicks, credential attempts, and report rates as data arrives.",
+    meta: ["Open rate trend", "Click and submit events", "Manager escalation signals"],
   },
   {
-    step: "Step 03",
-    title: "Analyze risk and benchmark",
+    step: "3",
+    title: "Decide remediation actions",
     description:
-      "Track clicks, credential attempts, and response timing, then compare performance against anonymous peer benchmarks.",
-    icon: IconShare,
+      "Prioritize retraining, targeted follow-ups, and policy updates from the behavior data.",
+    meta: ["At-risk cohort shortlist", "Recommended training path", "30-day retest plan"],
   },
 ];
 
 const HowItWorks = () => {
   return (
-    <section className="py-28">
-      <div className="relative overflow-hidden rounded-[2rem] border border-neutral-200 bg-linear-to-br from-white via-neutral-50 to-cyan-50/60 p-6 shadow-aceternity md:p-10">
-        <div className="pointer-events-none absolute -right-16 -top-20 h-72 w-72 rounded-full bg-cyan-200/35 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-24 -left-20 h-72 w-72 rounded-full bg-sky-300/15 blur-3xl" />
-
+    <section className="border border-breach-border bg-breach-bg text-breach-text">
+      <div className="grid border-b border-breach-border lg:grid-cols-[1.2fr_1fr]">
         <motion.div
           initial={{ opacity: 0, y: 10, filter: "blur(10px)" }}
           whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+          viewport={{ once: true, amount: 0.4 }}
           transition={{ duration: 0.35, ease: "easeOut" }}
-          className="relative z-10 max-w-2xl"
+          className="p-7 sm:p-10"
         >
-          <p className="text-xs uppercase tracking-[0.24em] text-neutral-500">
-            How It Works
-          </p>
-          <h3 className="mt-3 text-4xl font-medium tracking-tighter text-primary md:text-5xl">
-            Run cybersecurity simulations in three guided steps.
-          </h3>
-          <p className="mt-3 text-sm leading-6 text-neutral-600 md:text-base">
-            A practical workflow for corporate administrators to test awareness,
-            identify vulnerable behavior, and improve security posture.
+          <h2 className="text-4xl font-medium tracking-tight sm:text-5xl">How It Works</h2>
+          <p className="mt-4 max-w-2xl text-lg leading-relaxed text-breach-muted">
+            A practical operating flow for security teams to make the right decisions at the right time.
           </p>
         </motion.div>
 
-        <div className="relative z-10 mt-10 grid grid-cols-1 gap-4 md:grid-cols-3">
-          {steps.map((item, index) => {
-            const Icon = item.icon;
-
-            return (
-              <motion.article
-                key={item.step}
-                initial={{ opacity: 0, y: 20, filter: "blur(10px)" }}
-                whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                transition={{
-                  duration: 0.35,
-                  delay: index * 0.12,
-                  ease: "easeInOut",
-                }}
-                className="group rounded-3xl border border-neutral-200 bg-white/85 p-6 backdrop-blur-sm transition-colors duration-300 hover:border-cyan-300"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-medium uppercase tracking-[0.2em] text-neutral-500">
-                    {item.step}
-                  </span>
-                  <div className="flex size-11 items-center justify-center rounded-2xl border border-neutral-200 text-neutral-600 transition-colors duration-300 group-hover:border-cyan-300 group-hover:text-cyan-700">
-                    <Icon size={20} strokeWidth={1.9} />
-                  </div>
-                </div>
-
-                <h4 className="mt-5 text-2xl font-medium tracking-tight text-primary">
-                  {item.title}
-                </h4>
-                <p className="mt-2 text-sm leading-6 text-neutral-600">
-                  {item.description}
-                </p>
-              </motion.article>
-            );
-          })}
+        <div className="flex items-end justify-start border-t border-breach-border p-7 lg:justify-end lg:border-l lg:border-t-0 sm:p-10">
+          <Link
+            href="/campaign/create"
+            className="inline-flex items-center gap-2 text-2xl font-medium text-emerald-300 transition-colors hover:text-emerald-200"
+          >
+            Create campaign now
+            <ArrowUpRight className="size-5" />
+          </Link>
         </div>
+      </div>
+
+      <div className="grid md:grid-cols-3">
+        {steps.map((item, index) => (
+          <motion.article
+            key={item.step}
+            initial={{ opacity: 0, y: 16, filter: "blur(10px)" }}
+            whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+            viewport={{ once: true, amount: 0.2 }}
+            transition={{ duration: 0.34, delay: index * 0.1, ease: "easeOut" }}
+            className="relative border-t border-breach-border p-6 md:border-r md:border-t-0 md:last:border-r-0 sm:p-8"
+          >
+            <span className="mb-6 inline-flex size-11 items-center justify-center rounded-full border border-slate-700 bg-slate-950/75 text-2xl font-medium text-slate-200">
+              {item.step}
+            </span>
+
+            <div className="rounded-2xl border border-slate-800 bg-slate-950/75 p-4">
+              <p className="text-sm text-breach-muted">{item.meta[0]}</p>
+              <p className="mt-3 text-sm text-breach-muted">{item.meta[1]}</p>
+              <p className="mt-3 text-sm text-breach-muted">{item.meta[2]}</p>
+            </div>
+
+            <h3 className="mt-7 text-4xl font-medium tracking-tight">{item.title}</h3>
+            <p className="mt-4 text-lg leading-relaxed text-breach-muted">{item.description}</p>
+          </motion.article>
+        ))}
       </div>
     </section>
   );
