@@ -1,3 +1,4 @@
+analytics.jsx 
 "use client";
 
 import { useMemo, useState } from "react";
@@ -48,63 +49,47 @@ export default function Analytics({
   generatedAt,
   summary,
   campaigns,
+  overview,
+  employees,
   highlightedCampaign,
   highlightedAnalytics,
 }) {
   const [metricFilter, setMetricFilter] = useState("email-opened");
   const safeCampaigns = useMemo(() => (Array.isArray(campaigns) ? campaigns : []), [campaigns]);
+  const safeEmployees = useMemo(() => (Array.isArray(employees) ? employees : []), [employees]);
 
   const totalTargets = Number(summary?.total_targets ?? 0);
   const riskScore = clampPercent(summary?.risk_score ?? 0);
-  const clickRate = clampPercent(highlightedAnalytics?.click_rate ?? summary?.click_rate ?? riskScore * 0.62);
+  const clickRate = clampPercent(
+    overview?.totals?.click_rate ?? highlightedAnalytics?.click_rate ?? summary?.click_rate ?? 0
+  );
   const compromiseRate = clampPercent(
-    highlightedAnalytics?.compromise_rate ?? summary?.compromise_rate ?? riskScore * 0.38
+    overview?.totals?.compromise_rate ?? highlightedAnalytics?.compromise_rate ?? summary?.compromise_rate ?? 0
   );
 
   const engagementSeries = useMemo(() => {
-    const sent = Math.max(Number(highlightedAnalytics?.total_sent ?? totalTargets ?? 30), 18);
-    const clickCount = Number(highlightedAnalytics?.total_clicks ?? Math.round((clickRate / 100) * sent));
-    const submitCount = Number(
-      highlightedAnalytics?.total_submissions ?? Math.round((compromiseRate / 100) * sent)
-    );
+    const daily = Array.isArray(overview?.daily) ? overview.daily : [];
+    const labels = daily.length
+      ? daily.map((entry) =>
+          new Date(entry.date).toLocaleDateString(undefined, {
+            month: "short",
+            day: "numeric",
+          })
+        )
+      : ["No data"];
 
-    const opened = [
-      Math.round(sent * 0.24),
-      Math.round(sent * 0.55),
-      Math.round(sent * 0.78),
-      Math.round(sent * 0.66),
-      Math.round(sent * 0.72),
-      Math.round(sent * 0.81),
-      Math.round(sent * 0.86),
-    ];
-
-    const clicked = [
-      Math.round(clickCount * 0.35),
-      Math.round(clickCount * 0.58),
-      Math.round(clickCount * 0.75),
-      Math.round(clickCount * 0.64),
-      Math.round(clickCount * 0.69),
-      Math.round(clickCount * 0.82),
-      Math.round(clickCount * 0.91),
-    ];
-
-    const submitted = [
-      Math.round(submitCount * 0.22),
-      Math.round(submitCount * 0.47),
-      Math.round(submitCount * 0.62),
-      Math.round(submitCount * 0.55),
-      Math.round(submitCount * 0.59),
-      Math.round(submitCount * 0.68),
-      Math.round(submitCount * 0.74),
-    ];
+    const sentSeries = daily.length ? daily.map((entry) => Number(entry.tests_sent ?? 0)) : [0];
+    const opensSeries = sentSeries.map((count) => Math.round((count * Math.max(clickRate, 12)) / 100));
+    const clicksSeries = sentSeries.map((count) => Math.round((count * clickRate) / 100));
+    const submissionsSeries = sentSeries.map((count) => Math.round((count * compromiseRate) / 100));
 
     return {
-      labels: ["26 Feb", "27 Feb", "28 Feb", "1 Mar", "2 Mar", "3 Mar", "4 Mar"],
-      opened,
-      clicked,
-      submitted,
+      labels,
+      opened: opensSeries,
+      clicked: clicksSeries,
+      submitted: submissionsSeries,
     };
-  }, [highlightedAnalytics, totalTargets, clickRate, compromiseRate]);
+  }, [overview, clickRate, compromiseRate]);
 
   const typeBreakdown = useMemo(() => {
     const buckets = {
@@ -387,9 +372,11 @@ export default function Analytics({
         <article className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
           <p className="flex items-center gap-2 text-sm font-medium text-slate-100">
             <ShieldAlert className="size-4 text-rose-300" />
-            Risk Trend
+            High Risk Employees
           </p>
-          <p className="mt-4 text-3xl font-semibold text-slate-100">{summary?.trend || "steady"}</p>
+          <p className="mt-4 text-3xl font-semibold text-slate-100">
+            {safeEmployees.filter((entry) => Number(entry?.risk_score ?? 0) >= 60).length}
+          </p>
         </article>
         <article className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
           <p className="flex items-center gap-2 text-sm font-medium text-slate-100">
@@ -397,7 +384,7 @@ export default function Analytics({
             Priority Action
           </p>
           <p className="mt-4 text-sm text-slate-300">
-            Focus retraining on teams with repeated click behavior and deploy the next controlled campaign.
+            Focus retraining on employees with repeated click and submission behavior before launching the next drill.
           </p>
         </article>
       </section>

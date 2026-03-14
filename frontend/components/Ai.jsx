@@ -12,7 +12,6 @@ import {
 import {
     AlertTriangle,
     Brain,
-    ArrowRight,
     Link2,
     Lock,
     Milestone,
@@ -82,6 +81,9 @@ const badgeToneClass = {
 
 const AiPanel = ({ highlightedCampaignTitle, clickRate, compromiseRate }) => {
     const [question, setQuestion] = useState("");
+    const [reply, setReply] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState("");
 
     const coachingSummary = useMemo(() => {
         const click = Number.isFinite(Number(clickRate)) ? Number(clickRate) : 0;
@@ -97,6 +99,57 @@ const AiPanel = ({ highlightedCampaignTitle, clickRate, compromiseRate }) => {
 
         return "Baseline is stable: keep practicing suspicious-link triage to maintain low exposure.";
     }, [clickRate, compromiseRate]);
+
+    function getBackendBaseUrl() {
+        return process.env.NEXT_PUBLIC_BACKEND_URL || "http://127.0.0.1:8000";
+    }
+
+    function buildQuestionPayload(rawQuestion) {
+        const campaignLabel = highlightedCampaignTitle || "No highlighted campaign";
+        const click = Number.isFinite(Number(clickRate)) ? Number(clickRate).toFixed(1) : "0.0";
+        const compromise = Number.isFinite(Number(compromiseRate)) ? Number(compromiseRate).toFixed(1) : "0.0";
+
+        return [
+            `Campaign context: ${campaignLabel}`,
+            `Click rate: ${click}%`,
+            `Compromise rate: ${compromise}%`,
+            "Please provide concise, practical coaching and prevention steps.",
+            `User question: ${rawQuestion.trim()}`,
+        ].join("\n");
+    }
+
+    async function askRag(questionText) {
+        const trimmed = questionText.trim();
+        if (!trimmed || isLoading) {
+            return;
+        }
+
+        setIsLoading(true);
+        setError("");
+
+        try {
+            const response = await fetch(`${getBackendBaseUrl()}/api/v1/chat/ask`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    message: buildQuestionPayload(trimmed),
+                    session_id: `dashboard-${(highlightedCampaignTitle || "general").toLowerCase().replaceAll(" ", "-")}`,
+                }),
+            });
+
+            const data = await response.json().catch(() => null);
+
+            if (!response.ok) {
+                throw new Error(data?.detail || "Failed to get AI guidance");
+            }
+
+            setReply(data?.reply || "No response from AI service.");
+        } catch (requestError) {
+            setError(requestError?.message || "Unable to connect to AI service right now.");
+        } finally {
+            setIsLoading(false);
+        }
+    }
 
     return (
         <div className="relative overflow-hidden rounded-2xl bg-breach-bg text-breach-text">
@@ -124,7 +177,7 @@ const AiPanel = ({ highlightedCampaignTitle, clickRate, compromiseRate }) => {
                         transition={{ duration: 0.42, delay: 0.06, ease: "easeOut" }}
                         className="max-w-3xl text-2xl leading-tight font-semibold tracking-[-0.03em] text-breach-text sm:text-3xl"
                     >
-                        GenAI Failure Intelligence
+                        AI Coach
                     </motion.h1>
 
                     <motion.p
@@ -150,15 +203,12 @@ const AiPanel = ({ highlightedCampaignTitle, clickRate, compromiseRate }) => {
                         transition={{ duration: 0.34, delay: 0.2 }}
                         className="flex flex-wrap items-center gap-3"
                     >
-                        <Button className="h-10 rounded-full bg-breach-accent px-5 text-sm font-semibold text-slate-950 hover:bg-emerald-300">
-                            Start AI Review
-                            <ArrowRight className="size-4" />
-                        </Button>
                         <Button
-                            variant="outline"
-                            className="h-10 rounded-full border-breach-border bg-breach-surface/70 px-5 text-sm text-breach-text hover:bg-breach-panel"
+                            onClick={() => askRag(question || questionStarters[0])}
+                            disabled={isLoading}
+                            className="h-10 rounded-full bg-breach-accent px-5 text-sm font-semibold text-slate-950 hover:bg-emerald-300 disabled:cursor-not-allowed disabled:opacity-60"
                         >
-                            Compare Campaign Behaviors
+                            {isLoading ? "Thinking..." : "Ask AI Now"}
                         </Button>
                     </motion.div>
                 </section>
@@ -200,7 +250,7 @@ const AiPanel = ({ highlightedCampaignTitle, clickRate, compromiseRate }) => {
                                 Ask AI About Your Behavior
                             </CardTitle>
                             <CardDescription className="text-breach-muted">
-                                UI-only mode for now. This prompt area is ready to connect with your AI endpoint.
+                                Connected to your LangChain RAG backend for campaign-aware phishing coaching.
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
@@ -224,7 +274,11 @@ const AiPanel = ({ highlightedCampaignTitle, clickRate, compromiseRate }) => {
                                         <button
                                             type="button"
                                             key={starter}
-                                            onClick={() => setQuestion(starter)}
+                                            onClick={() => {
+                                                setQuestion(starter);
+                                                askRag(starter);
+                                            }}
+                                            disabled={isLoading}
                                             className="rounded-full border border-breach-border bg-breach-panel px-3 py-1.5 text-xs text-breach-muted transition hover:border-breach-accent/40 hover:text-breach-text"
                                         >
                                             {starter}
@@ -232,10 +286,27 @@ const AiPanel = ({ highlightedCampaignTitle, clickRate, compromiseRate }) => {
                                     ))}
                                 </div>
                                 <div className="mt-4 flex justify-end">
-                                    <Button className="h-10 rounded-full bg-breach-accent px-5 text-slate-950 hover:bg-emerald-300">
-                                        Get AI Guidance
+                                    <Button
+                                        onClick={() => askRag(question)}
+                                        disabled={isLoading || !question.trim()}
+                                        className="h-10 rounded-full bg-breach-accent px-5 text-slate-950 hover:bg-emerald-300 disabled:cursor-not-allowed disabled:opacity-60"
+                                    >
+                                        {isLoading ? "Thinking..." : "Get AI Guidance"}
                                     </Button>
                                 </div>
+
+                                {error ? (
+                                    <p className="mt-3 text-sm text-rose-300">{error}</p>
+                                ) : null}
+
+                                {reply ? (
+                                    <div className="mt-4 rounded-xl border border-breach-accent/25 bg-breach-bg p-4">
+                                        <p className="text-xs uppercase tracking-[0.12em] text-breach-muted">AI Response</p>
+                                        <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-breach-text">
+                                            {reply}
+                                        </p>
+                                    </div>
+                                ) : null}
                             </div>
                         </CardContent>
                     </Card>
@@ -273,10 +344,10 @@ const AiPanel = ({ highlightedCampaignTitle, clickRate, compromiseRate }) => {
                             <div className="mt-2 rounded-xl border border-amber-500/25 bg-amber-500/8 px-3 py-2 text-xs leading-relaxed text-amber-100">
                                 <div className="flex items-center gap-2 font-medium text-amber-200">
                                     <AlertTriangle className="size-4" />
-                                    No static demo analytics
+                                    Live backend dependency
                                 </div>
                                 <p className="mt-1 text-amber-100/85">
-                                    This component intentionally avoids fake data and is ready for real backend responses.
+                                    If the RAG API is unavailable, the panel will show a recoverable error and keep the draft question.
                                 </p>
                             </div>
                             <div className="rounded-xl border border-emerald-500/25 bg-emerald-500/8 px-3 py-2 text-xs leading-relaxed text-emerald-100">

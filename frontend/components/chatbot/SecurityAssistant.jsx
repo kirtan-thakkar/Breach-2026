@@ -53,8 +53,7 @@ const SecurityAssistant = () => {
       >
         {isOpen ? <X size={24} /> : <MessageSquare size={24} />}
       </motion.button>
-
-      {/* Chat Window */}
+      
       <AnimatePresence>
         {isOpen && (
           <motion.div

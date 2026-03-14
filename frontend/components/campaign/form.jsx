@@ -81,6 +81,7 @@ export default function CampaignForm({ orgId, token }) {
     template_id: "template-phishing-01",
     scheduled_date: "",
     scheduled_time: "09:00",
+    include_qr_code: false,
   });
   const [targets, setTargets] = useState([]);
   const [selectedTargetIds, setSelectedTargetIds] = useState([]);
@@ -95,14 +96,20 @@ export default function CampaignForm({ orgId, token }) {
   const [status, setStatus] = useState({ state: "idle", message: "" });
 
   const payloadPreview = useMemo(() => {
-    return {
+    const payload = {
       name: formState.name,
       description: formState.description || null,
       type: formState.type,
       template_id: formState.template_id,
-      organization_id: orgId,
       scheduled_at: buildScheduledIso(formState.scheduled_date, formState.scheduled_time),
+      include_qr_code: Boolean(formState.include_qr_code),
     };
+
+    if (orgId && String(orgId).trim()) {
+      payload.organization_id = String(orgId).trim();
+    }
+
+    return payload;
   }, [formState, orgId]);
 
   useEffect(() => {
@@ -263,8 +270,8 @@ export default function CampaignForm({ orgId, token }) {
   }
 
   function handleInputChange(event) {
-    const { name, value } = event.target;
-    setFormState((previous) => ({ ...previous, [name]: value }));
+    const { name, value, type, checked } = event.target;
+    setFormState((previous) => ({ ...previous, [name]: type === "checkbox" ? checked : value }));
   }
 
   function handleDateSelect(nextDate) {
@@ -293,7 +300,7 @@ export default function CampaignForm({ orgId, token }) {
     });
 
     try {
-      const response = await fetch(`${getBackendBaseUrl()}/api/v1/campaigns/`, {
+      const response = await fetch(`${getBackendBaseUrl()}/api/v1/campaigns`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -411,6 +418,22 @@ export default function CampaignForm({ orgId, token }) {
           </label>
         </div>
 
+        <label className="flex items-start gap-3 rounded-xl border border-slate-700 bg-slate-950/60 px-3 py-3">
+          <input
+            type="checkbox"
+            name="include_qr_code"
+            checked={formState.include_qr_code}
+            onChange={handleInputChange}
+            className="mt-1 size-4 rounded border-slate-700 bg-slate-900 text-emerald-400"
+          />
+          <span>
+            <span className="block text-sm font-medium text-slate-100">Include QR code in phishing email</span>
+            <span className="block text-xs text-slate-400">
+              Adds a QR code to the email that opens the same tracking link when scanned.
+            </span>
+          </span>
+        </label>
+
         <label className="block space-y-1">
           <span className="text-xs uppercase tracking-[0.14em] text-slate-500">Schedule (optional)</span>
           <div className="grid gap-3 sm:grid-cols-2">
@@ -419,8 +442,8 @@ export default function CampaignForm({ orgId, token }) {
                 <Button
                   type="button"
                   variant="outline"
-                  className={`h-11 w-full justify-start border-slate-600 bg-slate-900/90 text-left text-sm hover:bg-slate-800 ${
-                    formState.scheduled_date ? "text-slate-100" : "text-slate-200"
+                  className={`h-11 w-full justify-start border-slate-700 bg-slate-950 text-left text-sm  ${
+                    formState.scheduled_date ? "text-slate-100" : "text-slate-400"
                   }`}
                 >
                   <CalendarDays className="size-4" />
@@ -468,7 +491,7 @@ export default function CampaignForm({ orgId, token }) {
         <div className="flex flex-wrap items-center gap-2 pt-2">
           <Button type="submit" className="h-10 bg-emerald-500 text-slate-950 hover:bg-emerald-400" disabled={status.state === "loading"}>
             {status.state === "loading" ? <LoaderCircle className="size-4 animate-spin" /> : <Send className="size-4" />}
-            Create Campaign
+            {formState.scheduled_date ? "Create Scheduled Campaign" : "Create Campaign"}
           </Button>
           <Button
             type="button"
@@ -477,7 +500,7 @@ export default function CampaignForm({ orgId, token }) {
             onClick={(event) => handleSubmit(event, true)}
           >
             {status.state === "loading" ? <LoaderCircle className="size-4 animate-spin" /> : <Mail className="size-4" />}
-            Create and Launch
+            {formState.scheduled_date ? "Schedule Launch" : "Create and Launch"}
           </Button>
           <Button
             type="button"

@@ -35,7 +35,7 @@ export default function LandingFooterSection() {
 
       <footer className="grid gap-10 px-6 py-12 sm:px-10 md:grid-cols-[1.2fr_0.6fr_0.6fr]">
         <div>
-          <h3 className="text-4xl font-medium tracking-tight">Breach 2026</h3>
+          <h3 className="text-4xl font-medium tracking-tight">Phishlytics</h3>
           <p className="mt-4 max-w-md text-xl leading-relaxed text-breach-muted">
             Continuous simulation and behavior analytics for corporate security teams.
           </p>
