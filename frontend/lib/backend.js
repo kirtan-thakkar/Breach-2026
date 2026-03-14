@@ -1,4 +1,3 @@
-backend.js 
 export const FALLBACK_CAMPAIGNS = [];
 
 export function getBackendBaseUrl() {
