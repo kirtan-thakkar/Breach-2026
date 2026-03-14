@@ -1,3 +1,4 @@
+import logging
 from typing import Literal, Optional
 
 from fastapi import APIRouter, HTTPException, status
@@ -6,13 +7,16 @@ from pydantic import BaseModel, EmailStr, Field
 from app.core.supabase import get_supabase, get_supabase_admin
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 
 class SignupRequest(BaseModel):
     email: EmailStr
-    password: str = Field(min_length=8)
+    password: str = Field(min_length=6)
     full_name: Optional[str] = None
-    role: Literal["advisor", "user"]
+    role: Literal["admin", "user"]
+    organization_name: Optional[str] = None
+    mobile: Optional[str] = None
 
 
 class LoginRequest(BaseModel):
@@ -23,13 +27,14 @@ class LoginRequest(BaseModel):
 class UserSessionResponse(BaseModel):
     user_id: str
     email: EmailStr
-    role: Literal["advisor", "user"]
+    role: Literal["admin", "user"]
     access_token: str
     refresh_token: str
     expires_at: Optional[int] = None
+    organization_id: Optional[str] = None
 
 
-def _extract_session_payload(auth_response, fallback_role: Optional[str] = None):
+def _extract_session_payload(auth_response, fallback_role: Optional[str] = None, org_id: Optional[str] = None):
     session = getattr(auth_response, "session", None)
     user = getattr(auth_response, "user", None)
 
@@ -41,7 +46,7 @@ def _extract_session_payload(auth_response, fallback_role: Optional[str] = None)
 
     role = user_metadata.get("role") or app_metadata.get("role") or fallback_role
 
-    if role not in {"advisor", "user"}:
+    if role not in {"admin", "user"}:
         role = "user"
 
     return UserSessionResponse(
@@ -51,15 +56,16 @@ def _extract_session_payload(auth_response, fallback_role: Optional[str] = None)
         access_token=getattr(session, "access_token"),
         refresh_token=getattr(session, "refresh_token"),
         expires_at=getattr(session, "expires_at", None),
+        organization_id=org_id,
     )
 
 
 @router.post("/signup", response_model=UserSessionResponse)
 async def signup(payload: SignupRequest):
     admin = get_supabase_admin()
-
+    
     try:
-        admin.auth.admin.create_user(
+        auth_user_resp = admin.auth.admin.create_user(
             {
                 "email": payload.email,
                 "password": payload.password,
@@ -70,14 +76,64 @@ async def signup(payload: SignupRequest):
                 },
             }
         )
+        new_user = auth_user_resp.user
     except Exception as error:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Failed to create user: {error}",
+            detail=f"Failed to create auth user: {error}",
         )
 
-    client = get_supabase()
+    org_id = None
+    org_name = payload.organization_name or "Default"
+    
+    try:
+        org_resp = admin.table("organizations").select("*").eq("name", org_name).execute()
+        if org_resp.data:
+            org_id = org_resp.data[0]["id"]
+        else:
+            new_org = admin.table("organizations").insert({"name": org_name}).execute()
+            if new_org.data:
+                org_id = new_org.data[0]["id"]
+    except Exception as error:
+        logger.warning(f"Org resolution failed: {error}")
+        try:
+            org_resp = admin.table("organizations").select("id").eq("name", "Default").execute()
+            if org_resp.data:
+                org_id = org_resp.data[0]["id"]
+            else:
+                new_org = admin.table("organizations").insert({"name": "Default"}).execute()
+                if new_org.data:
+                    org_id = new_org.data[0]["id"]
+        except Exception:
+            pass
 
+    try:
+        user_data = {
+            "id": str(new_user.id),
+            "organization_id": org_id,
+            "email": payload.email,
+            "name": payload.full_name,
+            "role": payload.role,
+        }
+        admin.table("users").insert(user_data).execute()
+    except Exception as error:
+        logger.warning(f"User table sync failed: {error}")
+
+    if payload.role == "user" and org_id:
+        try:
+            target_data = {
+                "organization_id": org_id,
+                "email": payload.email,
+                "name": payload.full_name,
+                "department": "Employees",
+            }
+            if payload.mobile:
+                target_data["whatsapp_number"] = payload.mobile
+            admin.table("targets").upsert(target_data, on_conflict="organization_id,email").execute()
+        except Exception as error:
+            logger.warning(f"Target sync failed: {error}")
+
+    client = get_supabase()
     try:
         auth_response = client.auth.sign_in_with_password(
             {"email": payload.email, "password": payload.password}
@@ -88,7 +144,7 @@ async def signup(payload: SignupRequest):
             detail=f"User created but sign-in failed: {error}",
         )
 
-    session_payload = _extract_session_payload(auth_response, fallback_role=payload.role)
+    session_payload = _extract_session_payload(auth_response, fallback_role=payload.role, org_id=str(org_id) if org_id else None)
 
     if not session_payload:
         raise HTTPException(
@@ -102,6 +158,7 @@ async def signup(payload: SignupRequest):
 @router.post("/login", response_model=UserSessionResponse)
 async def login(payload: LoginRequest):
     client = get_supabase()
+    admin = get_supabase_admin()
 
     try:
         auth_response = client.auth.sign_in_with_password(
@@ -113,7 +170,17 @@ async def login(payload: LoginRequest):
             detail=f"Invalid credentials: {error}",
         )
 
-    session_payload = _extract_session_payload(auth_response)
+    org_id = None
+    user = getattr(auth_response, "user", None)
+    if user:
+        try:
+            db_user = admin.table("users").select("organization_id").eq("id", str(user.id)).limit(1).execute()
+            if db_user.data:
+                org_id = db_user.data[0].get("organization_id")
+        except Exception as error:
+            logger.warning(f"Organization lookup during login failed for user {user.id}: {error}")
+
+    session_payload = _extract_session_payload(auth_response, org_id=str(org_id) if org_id else None)
 
     if not session_payload:
         raise HTTPException(
