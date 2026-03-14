@@ -4,6 +4,7 @@ load_dotenv()
 class Settings:
     PROJECT_NAME = "AttackSimulator"
     API_V1_STR = "/api/v1"
+    FRONTEND_ORIGIN = os.getenv("FRONTEND_ORIGIN", "http://localhost:3000")
     SUPABASE_URL = os.getenv("SUPABASE_URL")
     SUPABASE_KEY = os.getenv("SUPABASE_KEY")
     SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
