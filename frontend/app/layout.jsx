@@ -2,10 +2,9 @@ import { DM_Sans } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/layout/navbar";
 import { ViewTransitions } from 'next-view-transitions'
-import { View } from "lucide-react";
 export const metadata = {
-  title: "Breach 2026",
-  description: "A cyber attack application",
+  title: "Phishlytics",
+  description: "Phishing simulation and cyber awareness platform",
 };
 
 const dmSans = DM_Sans({

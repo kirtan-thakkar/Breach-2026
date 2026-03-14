@@ -1,7 +1,7 @@
 export const FALLBACK_CAMPAIGNS = [];
 
 export function getBackendBaseUrl() {
-  return process.env.NEXT_PUBLIC_BACKEND_URL || process.env.BACKEND_URL || "http://127.0.0.1:8000";
+  return process.env.NEXT_PUBLIC_BACKEND_URL || process.env.BACKEND_URL || "https://breach-2026.onrender.com";
 }
 
 async function parseJsonSafely(response) {
@@ -27,6 +27,9 @@ export async function postJson(pathname, body, init = {}) {
   const data = await parseJsonSafely(response);
 
   if (!response.ok) {
+    if (response.status === 401) {
+      clearAuthSessionCookies();
+    }
     const message = data?.detail || "Request failed";
     throw new Error(message);
   }
@@ -39,8 +42,15 @@ export function applyAuthSessionCookies(payload) {
     return;
   }
 
-  const maxAge = 60 * 60 * 24 * 7;
+  const nowSeconds = Math.floor(Date.now() / 1000);
+  const tokenMaxAge = Number(payload.expires_at || 0) - nowSeconds;
+  const maxAge = tokenMaxAge > 0 ? tokenMaxAge : 0;
   const safeRole = payload.role || "admin";
+
+  if (maxAge <= 0) {
+    clearAuthSessionCookies();
+    return;
+  }
 
   document.cookie = `role=${safeRole}; Path=/; Max-Age=${maxAge}; SameSite=Lax`;
 
@@ -84,6 +94,9 @@ export async function fetchSafe(pathname, cacheSeconds = 20, init = {}) {
     });
 
     if (!response.ok) {
+      if (response.status === 401) {
+        clearAuthSessionCookies();
+      }
       return null;
     }
 
