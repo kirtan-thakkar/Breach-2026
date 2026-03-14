@@ -1,19 +1,12 @@
-import Dashboard from "@/components/dashboard";
-import { getOrgIdFromParams, loadOrgSnapshot } from "@/lib/backend";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 
-export default async function DashboardPage({ searchParams }) {
-  const params = await searchParams;
-  const orgId = getOrgIdFromParams(params);
-  const { summary, campaigns, highlightedCampaign, highlightedAnalytics } = await loadOrgSnapshot(orgId);
+import { getDashboardRouteForRole, resolveRoleFromCookieStore } from "@/lib/auth";
 
-  return (
-    <Dashboard
-      orgId={orgId}
-      summary={summary}
-      campaigns={campaigns}
-      campaignAnalytics={highlightedAnalytics}
-      highlightedCampaign={highlightedCampaign}
-      generatedAt={new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-    />
-  );
+export default async function DashboardPage() {
+  const cookieStore = await cookies();
+  const role = resolveRoleFromCookieStore(cookieStore);
+  const route = getDashboardRouteForRole(role);
+
+  redirect(route || "/login");
 }

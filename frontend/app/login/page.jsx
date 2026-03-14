@@ -1,16 +1,45 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Shield, Sparkles } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 import Container from "@/components/Container";
 import { Button } from "@/components/ui/button";
+import { getDashboardRouteForRole } from "@/lib/auth";
+import { applyAuthSessionCookies, loginWithPassword } from "@/lib/backend";
 import { gsap, useGSAP } from "@/lib/gsap";
 
 const LoginPage = () => {
   const rootRef = useRef(null);
+  const router = useRouter();
   const prefersReducedMotion = useReducedMotion();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [authHint, setAuthHint] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  async function handleSubmit(event) {
+    event.preventDefault();
+    setIsSubmitting(true);
+    setAuthHint("");
+
+    try {
+      const session = await loginWithPassword({
+        email: email.trim(),
+        password,
+      });
+
+      applyAuthSessionCookies(session);
+
+      const route = getDashboardRouteForRole(session?.role);
+      router.replace(route || "/dashboard/user");
+    } catch (error) {
+      setAuthHint(error instanceof Error ? error.message : "Login failed. Please try again.");
+      setIsSubmitting(false);
+    }
+  }
 
   useGSAP(
     () => {
@@ -105,7 +134,7 @@ const LoginPage = () => {
                 <h2 className="mt-1 text-3xl font-semibold tracking-tighter text-foreground">Access your account</h2>
               </div>
 
-              <form className="space-y-4" aria-label="login form">
+              <form className="space-y-4" aria-label="login form" onSubmit={handleSubmit}>
                 <div className="login-reveal space-y-2">
                   <label htmlFor="email" className="text-sm font-medium text-foreground">
                     Email
@@ -114,8 +143,11 @@ const LoginPage = () => {
                     id="email"
                     type="email"
                     placeholder="you@company.com"
+                    value={email}
+                    onChange={(event) => setEmail(event.target.value)}
                     className="h-11 w-full rounded-xl border border-input bg-background px-3 text-sm text-foreground outline-none transition focus:border-ring focus:ring-3 focus:ring-ring/30"
                     autoComplete="email"
+                    required
                   />
                 </div>
 
@@ -132,8 +164,11 @@ const LoginPage = () => {
                     id="password"
                     type="password"
                     placeholder="Enter your password"
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
                     className="h-11 w-full rounded-xl border border-input bg-background px-3 text-sm text-foreground outline-none transition focus:border-ring focus:ring-3 focus:ring-ring/30"
                     autoComplete="current-password"
+                    required
                   />
                 </div>
 
@@ -154,16 +189,18 @@ const LoginPage = () => {
                   whileTap={prefersReducedMotion ? {} : { scale: 0.99 }}
                   transition={{ type: "spring", stiffness: 220, damping: 18 }}
                 >
-                  <Button type="submit" className="h-11 w-full rounded-xl text-sm font-semibold">
-                    Continue
+                  <Button type="submit" disabled={isSubmitting} className="h-11 w-full rounded-xl text-sm font-semibold">
+                    {isSubmitting ? "Signing in..." : "Continue"}
                   </Button>
                 </motion.div>
               </form>
 
+              {authHint ? <p className="mt-3 text-xs text-amber-300">{authHint}</p> : null}
+
               <p className="login-reveal mt-6 text-center text-sm text-muted-foreground">
                 New here?{" "}
-                <Link href="#" className="font-medium text-primary hover:underline">
-                  Request access
+                <Link href="/signup" className="font-medium text-primary hover:underline">
+                  Create account
                 </Link>
               </p>
             </div>

@@ -45,6 +45,68 @@ export function getBackendBaseUrl() {
   return process.env.NEXT_PUBLIC_BACKEND_URL || process.env.BACKEND_URL || "http://127.0.0.1:8000";
 }
 
+async function parseJsonSafely(response) {
+  try {
+    return await response.json();
+  } catch (error) {
+    return null;
+  }
+}
+
+export async function postJson(pathname, body, init = {}) {
+  const url = `${getBackendBaseUrl()}${pathname}`;
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(init.headers || {}),
+    },
+    body: JSON.stringify(body),
+    ...init,
+  });
+
+  const data = await parseJsonSafely(response);
+
+  if (!response.ok) {
+    const message = data?.detail || "Request failed";
+    throw new Error(message);
+  }
+
+  return data;
+}
+
+export function applyAuthSessionCookies(payload) {
+  if (typeof document === "undefined" || !payload) {
+    return;
+  }
+
+  const maxAge = 60 * 60 * 24 * 7;
+  const safeRole = payload.role || "user";
+
+  document.cookie = `role=${safeRole}; Path=/; Max-Age=${maxAge}; SameSite=Lax`;
+
+  if (payload.access_token) {
+    document.cookie = `auth_session=${payload.access_token}; Path=/; Max-Age=${maxAge}; SameSite=Lax`;
+  }
+}
+
+export function clearAuthSessionCookies() {
+  if (typeof document === "undefined") {
+    return;
+  }
+
+  document.cookie = "role=; Path=/; Max-Age=0; SameSite=Lax";
+  document.cookie = "auth_session=; Path=/; Max-Age=0; SameSite=Lax";
+}
+
+export async function signupWithRole(payload) {
+  return postJson("/api/v1/auth/signup", payload);
+}
+
+export async function loginWithPassword(payload) {
+  return postJson("/api/v1/auth/login", payload);
+}
+
 export async function fetchSafe(pathname, cacheSeconds = 20, init = {}) {
   const url = `${getBackendBaseUrl()}${pathname}`;
 
