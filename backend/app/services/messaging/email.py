@@ -26,6 +26,11 @@ class EmailService(MessagingService):
         base_url = os.getenv("API_BASE_URL", "http://localhost:8000")
         return f"{base_url}/api/v1/tracking/open/{tracking_id}"
 
+    def generate_qr_image_url(self, destination_url: str) -> str:
+        from urllib.parse import quote
+
+        return f"https://api.qrserver.com/v1/create-qr-code/?size=220x220&data={quote(destination_url, safe='')}"
+
     async def send_message(self, target_email: str, content: dict, tracking_id: str):
         try:
             tracking_link = self.generate_tracking_link(tracking_id)
@@ -33,6 +38,16 @@ class EmailService(MessagingService):
             
             # Replace placeholder with actual link
             body = content.get("content", "").replace("[CLICK_HERE]", tracking_link)
+            qr_markup = (
+                f'<div style="margin:20px 0;text-align:center;">'
+                f'<img src="{self.generate_qr_image_url(tracking_link)}" alt="QR Code" width="180" height="180" />'
+                f'<p style="font-size:12px;color:#475569;margin-top:8px;">Scan to open the same secure link</p>'
+                f'</div>'
+            )
+            if "[QR_CODE]" in body:
+                body = body.replace("[QR_CODE]", qr_markup)
+            elif content.get("include_qr_code"):
+                body += f"<br/><br/>{qr_markup}"
             # Add tracking pixel
             body += f'<img src="{pixel_link}" width="1" height="1" style="display:none;" />'
 
