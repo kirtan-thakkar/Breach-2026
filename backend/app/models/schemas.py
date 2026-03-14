@@ -23,7 +23,8 @@ class TargetBase(BaseModel):
     email: EmailStr
     name: str
     department: Optional[str] = None
-    organization_id: str
+    whatsapp_number: Optional[str] = None
+    organization_id: Optional[str] = None
 
 class TargetCreate(TargetBase):
     pass
@@ -42,7 +43,9 @@ class CampaignBase(BaseModel):
     description: Optional[str] = None
     type: CampaignType
     template_id: str
-    organization_id: str
+    organization_id: Optional[str] = None
+    include_qr_code: bool = False
+    attack_channel: Optional[str] = "email_link"
 
 class CampaignCreate(CampaignBase):
     scheduled_at: Optional[datetime] = None
@@ -52,6 +55,9 @@ class Campaign(CampaignBase):
     status: CampaignStatus
     created_at: datetime
     scheduled_at: Optional[datetime]
+    selected_target_ids: List[str] = []
+    ad_hoc_emails: List[str] = []
+    attack_channel: Optional[str] = "email_link"
     
     class Config:
         from_attributes = True
@@ -61,6 +67,7 @@ class EventType(str, Enum):
     LINK_CLICKED = "link_clicked"
     CREDENTIAL_SUBMITTED = "credential_submitted"
     TRAINING_VIEWED = "training_viewed"
+    CALENDAR_ACCEPTED = "calendar_accepted"
 
 class SimulationEventCreate(BaseModel):
     simulation_id: str

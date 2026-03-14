@@ -49,7 +49,11 @@ CREATE TABLE IF NOT EXISTS campaigns (
     type TEXT CHECK (type IN ('phishing','credential','training')),
     status TEXT CHECK (status IN ('draft','scheduled','running','completed','cancelled')) DEFAULT 'draft',
     scheduled_at TIMESTAMPTZ,
+    include_qr_code BOOLEAN DEFAULT FALSE,
+    selected_target_ids JSONB DEFAULT '[]'::jsonb,
+    ad_hoc_emails JSONB DEFAULT '[]'::jsonb,
     created_by UUID REFERENCES users(id),
+    attack_channel TEXT DEFAULT 'email_link',
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -73,7 +77,8 @@ CREATE TABLE IF NOT EXISTS simulation_events (
             'email_opened',
             'link_clicked',
             'credential_submitted',
-            'training_viewed'
+            'training_viewed',
+            'calendar_accepted'
         )
     ),
     ip_address TEXT,
@@ -113,3 +118,9 @@ CREATE TABLE IF NOT EXISTS ai_insights (
 -- ALTER TABLE users DROP CONSTRAINT IF EXISTS users_role_check;
 -- ALTER TABLE users ADD CONSTRAINT users_role_check CHECK (role IN ('admin','user'));
 -- ALTER TABLE simulations ALTER COLUMN tracking_id TYPE TEXT;
+-- ALTER TABLE campaigns ADD COLUMN IF NOT EXISTS include_qr_code BOOLEAN DEFAULT FALSE;
+-- ALTER TABLE campaigns ADD COLUMN IF NOT EXISTS selected_target_ids JSONB DEFAULT '[]'::jsonb;
+-- ALTER TABLE campaigns ADD COLUMN IF NOT EXISTS ad_hoc_emails JSONB DEFAULT '[]'::jsonb;
+-- ALTER TABLE campaigns ADD COLUMN IF NOT EXISTS attack_channel TEXT DEFAULT 'email_link';
+-- ALTER TABLE simulation_events DROP CONSTRAINT IF EXISTS simulation_events_event_type_check;
+-- ALTER TABLE simulation_events ADD CONSTRAINT simulation_events_event_type_check CHECK (event_type IN ('email_opened','link_clicked','credential_submitted','training_viewed','calendar_accepted'));

@@ -119,6 +119,22 @@ async def signup(payload: SignupRequest):
     except Exception as error:
         logger.warning(f"User table sync failed: {error}")
 
+    # Embed org_id into JWT user_metadata so login can read it without touching the users table.
+    if org_id:
+        try:
+            admin.auth.admin.update_user_by_id(
+                str(new_user.id),
+                {
+                    "user_metadata": {
+                        "full_name": payload.full_name,
+                        "role": payload.role,
+                        "organization_id": str(org_id),
+                    }
+                },
+            )
+        except Exception as error:
+            logger.warning(f"User metadata org embed failed: {error}")
+
     if payload.role == "user" and org_id:
         try:
             target_data = {
@@ -173,12 +189,35 @@ async def login(payload: LoginRequest):
     org_id = None
     user = getattr(auth_response, "user", None)
     if user:
-        try:
-            db_user = admin.table("users").select("organization_id").eq("id", str(user.id)).limit(1).execute()
-            if db_user.data:
-                org_id = db_user.data[0].get("organization_id")
-        except Exception as error:
-            logger.warning(f"Organization lookup during login failed for user {user.id}: {error}")
+        # 1. Read from JWT metadata first — no DB call needed.
+        user_metadata = getattr(user, "user_metadata", {}) or {}
+        org_id = user_metadata.get("organization_id")
+
+        # 2. Fall back to admin users table if not in metadata.
+        if not org_id:
+            try:
+                db_user = admin.table("users").select("organization_id").eq("id", str(user.id)).limit(1).execute()
+                if db_user.data:
+                    org_id = db_user.data[0].get("organization_id")
+            except Exception as error:
+                logger.warning(f"Organization lookup during login failed for user {user.id}: {error}")
+
+        # 3. Fall back to any existing organization (admin client bypasses RLS).
+        if not org_id:
+            try:
+                org_res = admin.table("organizations").select("id").limit(1).execute()
+                if org_res.data:
+                    org_id = org_res.data[0].get("id")
+                    # Back-fill metadata so next login is instant.
+                    try:
+                        admin.auth.admin.update_user_by_id(
+                            str(user.id),
+                            {"user_metadata": {**user_metadata, "organization_id": str(org_id)}},
+                        )
+                    except Exception:
+                        pass
+            except Exception as error:
+                logger.warning(f"Fallback org lookup during login failed for user {user.id}: {error}")
 
     session_payload = _extract_session_payload(auth_response, org_id=str(org_id) if org_id else None)
 
