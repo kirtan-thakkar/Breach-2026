@@ -79,3 +79,77 @@ Supabase-powered PostgreSQL database storing organizations, campaigns, simulatio
 ---
 
 # Repository Structure
+Breach-2026/
+│
+├── backend/
+│ ├── app/
+│ │ ├── api/v1/endpoints/
+│ │ ├── core/
+│ │ ├── services/
+│ │ ├── models/
+│ │ ├── templates/
+│ │ └── langchain/
+│ │
+│ ├── schema.sql
+│ ├── scripts/init_db.sql
+│ └── requirements.txt
+│
+├── frontend/
+│ ├── app/
+│ ├── components/
+│ ├── lib/
+│ └── package.json
+
+
+---
+
+# Campaign Workflow
+
+1. Admin logs into the platform.
+2. Targets (employees) are added or imported.
+3. Admin creates a phishing campaign.
+4. Backend dispatches phishing simulation emails or messages.
+5. Tracking endpoints capture:
+   - Email opens
+   - Link clicks
+   - Credential submissions
+6. Analytics services process telemetry data.
+
+---
+
+# Start backend server:
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+Backend URL: http://127.0.0.1:8000
+
+# Frontend Setup
+cd frontend
+npm install
+npm run dev
+
+This platform is designed only for authorized cybersecurity awareness programs.
+
+Organizations deploying such systems should ensure:
+ -Explicit organizational approval
+ -Controlled phishing simulation scope
+-Secure handling of sensitive data
+-Compliance with data protection policies
+-Hackathon Context
+
+# Contributors
+
+Kirtan Thakkar
+Frontend Development
+
+Jhanvi Patel
+Backend Development
+
+Tisha & Sweta
+Research, documentation, and coordination
+
+#Future Improvements
+ -Advanced analytics dashboards
+ -Automated security awareness training
+ -Real phishing template libraries
+ -Organization-level risk scoring
+
+ # If you liked the project, do give it a *
