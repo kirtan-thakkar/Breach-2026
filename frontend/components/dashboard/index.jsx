@@ -265,6 +265,7 @@ export default function Dashboard({
       activeSection="dashboard"
       title="System Overview"
       subtitle="Monitor campaign health, target behavior, and simulated compromise signals."
+      role="admin"
       orgId={orgId}
       generatedAt={generatedAt}
       actions={

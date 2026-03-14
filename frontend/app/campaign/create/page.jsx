@@ -1,13 +1,23 @@
 import { CheckCircle2 } from "lucide-react";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 
 import CampaignForm from "@/components/campaign/form";
 import OpsLayout from "@/components/ops/layout";
 import { Button } from "@/components/ui/button";
 import { getOrgIdFromParams } from "@/lib/backend";
+import { getDashboardRouteForRole, resolveRoleFromCookieStore } from "@/lib/auth";
 
 export default async function CreateCampaignPage({ searchParams }) {
   const params = await searchParams;
   const orgId = getOrgIdFromParams(params);
+  const cookieStore = await cookies();
+  const role = resolveRoleFromCookieStore(cookieStore);
+  const token = cookieStore.get("auth_session")?.value;
+
+  if (role !== "admin") {
+    redirect(getDashboardRouteForRole(role) || "/login");
+  }
 
   return (
     <OpsLayout
@@ -24,7 +34,7 @@ export default async function CreateCampaignPage({ searchParams }) {
       }
       searchPlaceholder="Search templates, campaign history..."
     >
-      <CampaignForm orgId={orgId} />
+      <CampaignForm orgId={orgId} token={token} />
     </OpsLayout>
   );
 }

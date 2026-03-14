@@ -15,12 +15,17 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
-const NAV_ITEMS = [
-  { key: "dashboard", label: "Dashboard", href: "/dashboard", icon: Home },
+const ADMIN_NAV = [
+  { key: "dashboard", label: "Dashboard", href: "/dashboard/advisor", icon: Home },
   { key: "campaign", label: "Campaigns", href: "/campaign", icon: Target },
   { key: "create-campaign", label: "Create Campaign", href: "/campaign/create", icon: CalendarClock, chip: "New" },
   { key: "analytics", label: "Analytics", href: "/analytics", icon: BarChart3 },
   { key: "simulation", label: "Simulation", href: "/simulation", icon: Radar },
+];
+
+const USER_NAV = [
+  { key: "dashboard", label: "My Posture", href: "/dashboard/user", icon: Home },
+  { key: "history", label: "Activity", href: "/dashboard/user#history", icon: Clock3 },
 ];
 
 function NavItem({ href, label, icon: Icon, active, chip }) {
@@ -51,11 +56,13 @@ export default function OpsLayout({
   title,
   subtitle,
   orgId,
+  role = "admin", // Default for safety
   generatedAt,
   children,
   actions,
   searchPlaceholder = "Search campaign, target, event...",
 }) {
+  const navItems = role === "admin" ? ADMIN_NAV : USER_NAV;
   return (
     <section className="relative min-h-screen overflow-hidden bg-[#03060d] text-slate-100">
       <div className="pointer-events-none absolute inset-0">
@@ -78,7 +85,7 @@ export default function OpsLayout({
             </div>
 
             <div className="mt-5 space-y-2">
-              {NAV_ITEMS.map(({ key, ...itemProps }) => (
+              {navItems.map(({ key, ...itemProps }) => (
                 <NavItem key={key} {...itemProps} active={key === activeSection} />
               ))}
             </div>

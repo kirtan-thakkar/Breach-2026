@@ -13,15 +13,15 @@ import { applyAuthSessionCookies, signupWithRole } from "@/lib/backend";
 
 const ROLE_OPTIONS = [
   {
-    id: "advisor",
-    title: "Advisor",
-    description: "Manage campaign posture, triage high-risk events, and guide remediation.",
+    id: "admin",
+    title: "Admin",
+    description: "Security team: Manage campaigns, analyze results, and generate AI insights.",
     icon: BriefcaseBusiness,
   },
   {
     id: "user",
-    title: "User",
-    description: "Upload personal finance docs, review AI summaries, and ask portfolio questions.",
+    title: "End User",
+    description: "Employee: View your own security posture, training history, and mock events.",
     icon: FileUser,
   },
 ];
@@ -29,12 +29,14 @@ const ROLE_OPTIONS = [
 export default function SignupPage() {
   const prefersReducedMotion = useReducedMotion();
   const router = useRouter();
-  const [role, setRole] = useState("user");
+  const [role, setRole] = useState("admin");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [authHint, setAuthHint] = useState("");
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [organizationName, setOrganizationName] = useState("");
+  const [mobile, setMobile] = useState("");
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -47,6 +49,8 @@ export default function SignupPage() {
         email: email.trim(),
         password,
         role,
+        organization_name: organizationName.trim() || "Default",
+        mobile: mobile.trim() || null,
       });
 
       applyAuthSessionCookies(session);
@@ -113,6 +117,36 @@ export default function SignupPage() {
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
                   required
+                  className="h-11 w-full rounded-xl border border-input bg-background px-3 text-sm text-foreground outline-none transition focus:border-ring focus:ring-3 focus:ring-ring/30"
+                />
+              </div>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <label htmlFor="organizationName" className="text-sm font-medium text-foreground">
+                  Organization name
+                </label>
+                <input
+                  id="organizationName"
+                  type="text"
+                  placeholder="Acme Corp"
+                  value={organizationName}
+                  onChange={(event) => setOrganizationName(event.target.value)}
+                  className="h-11 w-full rounded-xl border border-input bg-background px-3 text-sm text-foreground outline-none transition focus:border-ring focus:ring-3 focus:ring-ring/30"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label htmlFor="mobile" className="text-sm font-medium text-foreground">
+                  Mobile number
+                </label>
+                <input
+                  id="mobile"
+                  type="tel"
+                  placeholder="+91 9876543210"
+                  value={mobile}
+                  onChange={(event) => setMobile(event.target.value)}
                   className="h-11 w-full rounded-xl border border-input bg-background px-3 text-sm text-foreground outline-none transition focus:border-ring focus:ring-3 focus:ring-ring/30"
                 />
               </div>

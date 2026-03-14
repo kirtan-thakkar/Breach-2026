@@ -1,19 +1,20 @@
-CREATE TABLE organizations (
+CREATE TABLE IF NOT EXISTS organizations (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name TEXT NOT NULL,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE,
     email TEXT UNIQUE NOT NULL,
     name TEXT,
-    role TEXT CHECK (role IN ('admin','analyst')) DEFAULT 'admin',
+    mobile TEXT,
+    role TEXT CHECK (role IN ('admin','user')) DEFAULT 'admin',
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE TABLE targets (
+CREATE TABLE IF NOT EXISTS targets (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE,
     email TEXT NOT NULL,
@@ -21,11 +22,13 @@ CREATE TABLE targets (
     department TEXT,
     risk_index FLOAT DEFAULT 0.0,
     behavioral_tags TEXT[] DEFAULT '{}',
+    whatsapp_number TEXT,
+    discord_handle TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     UNIQUE(organization_id, email)
 );
 
-CREATE TABLE templates (
+CREATE TABLE IF NOT EXISTS templates (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name TEXT NOT NULL,
     type TEXT CHECK (type IN ('phishing','credential','training')),
@@ -37,30 +40,32 @@ CREATE TABLE templates (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE TABLE campaigns (
+CREATE TABLE IF NOT EXISTS campaigns (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE,
     template_id UUID REFERENCES templates(id),
     title TEXT NOT NULL,
     description TEXT,
     type TEXT CHECK (type IN ('phishing','credential','training')),
-    status TEXT CHECK (status IN ('draft','scheduled','running','completed')) DEFAULT 'draft',
+    status TEXT CHECK (status IN ('draft','scheduled','running','completed','cancelled')) DEFAULT 'draft',
     scheduled_at TIMESTAMPTZ,
     created_by UUID REFERENCES users(id),
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE TABLE simulations (
+CREATE TABLE IF NOT EXISTS simulations (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     campaign_id UUID REFERENCES campaigns(id) ON DELETE CASCADE,
     target_id UUID REFERENCES targets(id) ON DELETE CASCADE,
-    tracking_id UUID UNIQUE NOT NULL,
+    tracking_id TEXT UNIQUE NOT NULL,
     email_sent BOOLEAN DEFAULT FALSE,
     sent_at TIMESTAMPTZ,
+    last_event_at TIMESTAMPTZ,
+    channel TEXT DEFAULT 'email',
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE TABLE simulation_events (
+CREATE TABLE IF NOT EXISTS simulation_events (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     simulation_id UUID REFERENCES simulations(id) ON DELETE CASCADE,
     event_type TEXT CHECK (
@@ -77,7 +82,16 @@ CREATE TABLE simulation_events (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE TABLE risk_scores (
+CREATE TABLE IF NOT EXISTS credentials_audit (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    simulation_id UUID REFERENCES simulations(id) ON DELETE CASCADE,
+    password_strength TEXT,
+    length INTEGER,
+    contains_special_chars BOOLEAN,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS risk_scores (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE,
     campaign_id UUID REFERENCES campaigns(id),
@@ -87,7 +101,7 @@ CREATE TABLE risk_scores (
     calculated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE TABLE ai_insights (
+CREATE TABLE IF NOT EXISTS ai_insights (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE,
     insight_type TEXT,
@@ -95,3 +109,7 @@ CREATE TABLE ai_insights (
     recommendation TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
+-- ALTER TABLE users ADD COLUMN IF NOT EXISTS mobile TEXT;
+-- ALTER TABLE users DROP CONSTRAINT IF EXISTS users_role_check;
+-- ALTER TABLE users ADD CONSTRAINT users_role_check CHECK (role IN ('admin','user'));
+-- ALTER TABLE simulations ALTER COLUMN tracking_id TYPE TEXT;

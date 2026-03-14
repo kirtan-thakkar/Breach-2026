@@ -10,6 +10,7 @@ function redirectToLogin(request) {
 }
 
 export function middleware(request) {
+  /* Commented out for testing purposes to stop redirects
   const { pathname } = request.nextUrl;
   const role = resolveRoleFromCookieStore(request.cookies);
   const routeForRole = getDashboardRouteForRole(role);
@@ -33,6 +34,7 @@ export function middleware(request) {
     rerouteUrl.search = "";
     return NextResponse.redirect(rerouteUrl);
   }
+  */
 
   return NextResponse.next();
 }

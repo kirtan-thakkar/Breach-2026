@@ -1,5 +1,5 @@
 const ROLE_ROUTES = Object.freeze({
-  advisor: "/dashboard/advisor",
+  admin: "/dashboard/advisor",
   user: "/dashboard/user",
 });
 
@@ -83,9 +83,9 @@ export function normalizeRole(value) {
     return normalized;
   }
 
-  if (normalized === "admin" || normalized === "analyst") {
-    return "advisor";
-  }
+  // Backward compatibility mappings
+  if (normalized === "advisor") return "admin";
+  if (normalized === "analyst") return "user";
 
   return null;
 }

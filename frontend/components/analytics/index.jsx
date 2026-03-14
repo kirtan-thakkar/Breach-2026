@@ -290,7 +290,7 @@ export default function Analytics({
           <div className="flex-1">
             <p className="text-lg font-semibold text-slate-100">Engagement vs Compromise (7 Days)</p>
             <p className="text-sm text-slate-400">
-              Highlighting {highlightedCampaign?.title || "active campaign"} behavior
+              Highlighting {highlightedCampaign?.name || highlightedCampaign?.title || "active campaign"} behavior
             </p>
           </div>
           <div className="flex items-center gap-4">

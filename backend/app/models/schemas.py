@@ -5,9 +5,12 @@ from enum import Enum
 
 class CampaignType(str, Enum):
     PHISHING = "phishing"
-    CREDENTIAL_HARVESTING = "credential_harvesting"
-    MALWARE_DECEPTION = "malware_deception"
-    SOCIAL_ENGINEERING = "social_engineering"
+    CREDENTIAL = "credential"
+    TRAINING = "training"
+
+class UserRole(str, Enum):
+    ADMIN = "admin"
+    USER = "user"
 
 class CampaignStatus(str, Enum):
     DRAFT = "draft"
@@ -35,7 +38,7 @@ class Target(TargetBase):
         from_attributes = True
 
 class CampaignBase(BaseModel):
-    title: str
+    name: str
     description: Optional[str] = None
     type: CampaignType
     template_id: str
@@ -56,8 +59,8 @@ class Campaign(CampaignBase):
 class EventType(str, Enum):
     EMAIL_OPENED = "email_opened"
     LINK_CLICKED = "link_clicked"
-    FORM_SUBMITTED = "form_submitted"
-    DATA_ENTERED = "data_entered"
+    CREDENTIAL_SUBMITTED = "credential_submitted"
+    TRAINING_VIEWED = "training_viewed"
 
 class SimulationEventCreate(BaseModel):
     simulation_id: str
