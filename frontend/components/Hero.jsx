@@ -1,7 +1,7 @@
 "use client";
 import { Link } from "next-view-transitions";
+import Image from "next/image";
 import Container from "./Container";
-import { Safari } from "./ui/safari";
 import { Button } from "@/components/ui/button";
 import { motion } from "motion/react";
 const HeroPage = () => {
@@ -69,10 +69,18 @@ const HeroPage = () => {
               transition={{ duration: 0.42, delay: 0.3, ease: "easeOut" }}
               className="w-full max-w-5xl pt-6 sm:pt-8"
             >
-              <Safari
-                url="breach2026.app/dashboard"
-                imageSrc="/image.png"
-              />
+              <div className="relative overflow-hidden rounded-3xl border border-breach-border/80 bg-breach-panel/80 p-2 shadow-(--shadow-breach-glow) backdrop-blur-sm sm:rounded-4xl sm:p-3">
+                <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(52,211,153,0.08),rgba(99,102,241,0.03)_38%,transparent_100%)]" />
+                <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-breach-accent/50 to-transparent" />
+                <Image
+                  src="/image.png"
+                  alt="Phishlytics dashboard preview"
+                  width={1600}
+                  height={1000}
+                  priority
+                  className="relative z-10 h-auto w-full rounded-[1.35rem] border border-white/6 object-cover sm:rounded-[1.9rem]"
+                />
+              </div>
             </motion.div>
         </div>
       </Container>

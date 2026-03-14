@@ -1,7 +1,7 @@
 export const FALLBACK_CAMPAIGNS = [];
 
 export function getBackendBaseUrl() {
-  return process.env.NEXT_PUBLIC_BACKEND_URL || process.env.BACKEND_URL || "https://breach-2026.onrender.com";
+  return process.env.NEXT_PUBLIC_BACKEND_URL || process.env.BACKEND_URL || "http://localhost:8000";
 }
 
 async function parseJsonSafely(response) {
