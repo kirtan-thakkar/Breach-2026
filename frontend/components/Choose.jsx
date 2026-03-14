@@ -47,7 +47,7 @@ const ChoosePage = () => {
           transition={{ duration: 0.35, ease: "easeOut" }}
           className="p-7 sm:p-10"
         >
-          <h2 className="text-4xl font-medium tracking-tight sm:text-5xl">Why Security Teams Choose Breach 2026</h2>
+          <h2 className="text-4xl font-medium tracking-tight sm:text-5xl">Why Security Teams Choose Phishlytics</h2>
           <p className="mt-4 max-w-2xl text-lg leading-relaxed text-breach-muted">
             Designed to guide rapid, high-confidence decisions during phishing simulation reviews and awareness response planning.
           </p>
