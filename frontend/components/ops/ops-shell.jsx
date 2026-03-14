@@ -64,7 +64,7 @@ export default function OpsShell({
         <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(30,41,59,0.28)_1px,transparent_1px),linear-gradient(to_bottom,rgba(30,41,59,0.2)_1px,transparent_1px)] bg-size-[42px_42px] opacity-35" />
       </div>
 
-      <div className="relative z-10 mx-auto max-w-375 px-3 pb-8 pt-4 sm:px-6 lg:px-8">
+      <div className="relative z-10 mx-auto w-full  pb-8 pt-4 sm:px-1 lg:px-2">
         <div className="grid gap-4 lg:grid-cols-[248px_minmax(0,1fr)]">
           <aside className="hidden min-h-[calc(100vh-2rem)] flex-col rounded-2xl border border-slate-800 bg-[#02040a]/90 p-4 lg:flex">
             <div className="flex items-center gap-3 border-b border-slate-800 pb-4">
@@ -78,8 +78,8 @@ export default function OpsShell({
             </div>
 
             <div className="mt-5 space-y-2">
-              {NAV_ITEMS.map((item) => (
-                <NavItem key={item.key} {...item} active={item.key === activeSection} />
+              {NAV_ITEMS.map(({ key, ...item }) => (
+                <NavItem key={key} {...item} active={key === activeSection} />
               ))}
             </div>
 

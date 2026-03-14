@@ -22,7 +22,7 @@ export default async function CreateCampaignPage({ searchParams }) {
           Ready to Launch
         </Button>
       }
-      searchPlaceholder="Search templates, campaign history..."
+      searchPlaceholder="Search templates, prior campaigns, and draft payloads..."
     >
       <CreateCampaignForm orgId={orgId} />
     </OpsShell>

@@ -2,9 +2,13 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { AlertCircle, CalendarClock, CheckCircle2, LoaderCircle, Send } from "lucide-react";
+import { format } from "date-fns";
+import { AlertCircle, Calendar, CheckCircle2, LoaderCircle, Send } from "lucide-react";
 
+import { Calendar as CalendarPicker } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 import { getBackendBaseUrl } from "@/lib/backend";
 
 const CAMPAIGN_TYPES = [
@@ -22,9 +26,23 @@ export default function CreateCampaignForm({ orgId }) {
     description: "",
     type: "phishing",
     template_id: "template-phishing-01",
-    scheduled_at: "",
+    scheduled_date: null,
+    scheduled_time: "09:00",
   });
   const [status, setStatus] = useState({ state: "idle", message: "" });
+
+  const scheduledAtIso = useMemo(() => {
+    if (!formState.scheduled_date) {
+      return null;
+    }
+
+    const [hours = "0", minutes = "0"] = formState.scheduled_time.split(":");
+    const scheduledAt = new Date(formState.scheduled_date);
+
+    scheduledAt.setHours(Number.parseInt(hours, 10), Number.parseInt(minutes, 10), 0, 0);
+
+    return scheduledAt.toISOString();
+  }, [formState.scheduled_date, formState.scheduled_time]);
 
   const payloadPreview = useMemo(() => {
     return {
@@ -33,9 +51,9 @@ export default function CreateCampaignForm({ orgId }) {
       type: formState.type,
       template_id: formState.template_id,
       organization_id: orgId,
-      scheduled_at: formState.scheduled_at ? new Date(formState.scheduled_at).toISOString() : null,
+      scheduled_at: scheduledAtIso,
     };
-  }, [formState, orgId]);
+  }, [formState, orgId, scheduledAtIso]);
 
   function handleInputChange(event) {
     const { name, value } = event.target;
@@ -90,7 +108,7 @@ export default function CreateCampaignForm({ orgId }) {
             value={formState.title}
             onChange={handleInputChange}
             required
-            placeholder="Q2 Credential Simulation"
+            placeholder="Ex: Q2 Payroll Security Drill"
             className="h-11 w-full rounded-xl border border-slate-700 bg-slate-950/70 px-3 text-sm text-slate-100 outline-none transition focus:border-emerald-400/50"
           />
         </label>
@@ -102,7 +120,7 @@ export default function CreateCampaignForm({ orgId }) {
             value={formState.description}
             onChange={handleInputChange}
             rows={4}
-            placeholder="Simulate payroll urgency with secure remediation flow"
+            placeholder="Ex: Simulate urgent payroll verification and route users to awareness training"
             className="w-full rounded-xl border border-slate-700 bg-slate-950/70 px-3 py-2 text-sm text-slate-100 outline-none transition focus:border-emerald-400/50"
           />
         </label>
@@ -131,24 +149,54 @@ export default function CreateCampaignForm({ orgId }) {
               value={formState.template_id}
               onChange={handleInputChange}
               required
-              placeholder="template-phishing-01"
+              placeholder="Ex: template-payroll-urgent-02"
               className="h-11 w-full rounded-xl border border-slate-700 bg-slate-950/70 px-3 text-sm text-slate-100 outline-none transition focus:border-emerald-400/50"
             />
           </label>
         </div>
 
-        <label className="block space-y-1">
+        <label className="block space-y-2">
           <span className="text-xs uppercase tracking-[0.14em] text-slate-500">Schedule (optional)</span>
-          <div className="relative">
+          <div className="grid gap-2 sm:grid-cols-[1fr_132px]">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className={cn(
+                    "h-11 justify-start border-slate-700 bg-slate-950/70 px-3 text-left font-normal text-slate-100 hover:bg-slate-900",
+                    !formState.scheduled_date && "text-slate-500"
+                  )}
+                >
+                  <Calendar className="mr-2 size-4" />
+                  {formState.scheduled_date ? format(formState.scheduled_date, "PPP") : "Select launch date"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto border-slate-800 bg-slate-950 p-0 text-slate-100" align="start">
+                <CalendarPicker
+                  mode="single"
+                  selected={formState.scheduled_date}
+                  onSelect={(selectedDate) =>
+                    setFormState((previous) => ({
+                      ...previous,
+                      scheduled_date: selectedDate ?? null,
+                    }))
+                  }
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+
             <input
-              type="datetime-local"
-              name="scheduled_at"
-              value={formState.scheduled_at}
+              type="time"
+              name="scheduled_time"
+              value={formState.scheduled_time}
               onChange={handleInputChange}
-              className="h-11 w-full rounded-xl border border-slate-700 bg-slate-950/70 px-3 text-sm text-slate-100 outline-none transition focus:border-emerald-400/50"
+              disabled={!formState.scheduled_date}
+              className="h-11 w-full rounded-xl border border-slate-700 bg-slate-950/70 px-3 text-sm text-slate-100 outline-none transition focus:border-emerald-400/50 disabled:cursor-not-allowed disabled:text-slate-500"
             />
-            <CalendarClock className="pointer-events-none absolute right-3 top-3.5 size-4 text-slate-500" />
           </div>
+          <p className="text-xs text-slate-500">Choose a date to enable time selection, or leave empty for immediate launch.</p>
         </label>
 
         <div className="flex flex-wrap items-center gap-2 pt-2">

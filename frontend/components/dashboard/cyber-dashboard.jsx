@@ -81,7 +81,7 @@ function MetricCard({ label, value, hint, icon: Icon, tone }) {
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.24 }}
-      className={`rounded-2xl border bg-slate-950/65 p-4 shadow-[0_0_0_1px_rgba(15,23,42,0.6)] ${toneClasses[tone]}`}
+      className={`rounded-2xl border bg-slate-950/65 p-4 shadow-aceternity${toneClasses[tone]}`}
     >
       <div className="flex items-start justify-between gap-2">
         <p className="text-xs uppercase tracking-[0.16em] text-slate-500">{label}</p>
