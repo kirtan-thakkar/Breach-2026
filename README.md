@@ -1,6 +1,6 @@
 # Phishlytics – Cybersecurity Awareness Simulation Platform
 
-![Cybersecurity Dashboard](https://images.unsplash.com/photo-1550751827-4bd374c3f58b)
+![Cybersecurity Dashboard](https://phishlytics.vercel.app/)
 
 Phishlytics is a full-stack cybersecurity awareness simulation platform that allows organizations to run controlled phishing exercises, track employee responses, and generate actionable security insights.
 
