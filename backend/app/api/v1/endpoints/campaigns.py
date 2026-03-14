@@ -27,33 +27,59 @@ async def create_campaign(campaign: CampaignCreate):
 
 @router.post("/{campaign_id}/launch")
 async def launch_campaign(campaign_id: str):
-    supabase = get_supabase()
-    campaign_resp = supabase.table("campaigns").select("*").eq("id", campaign_id).execute()
+    supabase = get_supabase_admin()
+    settings = get_settings()
+    campaign_resp = supabase.table("campaigns").select("*, templates(*)").eq("id", campaign_id).execute()
     if not campaign_resp.data:
         raise HTTPException(status_code=404, detail="Campaign not found")
     
     campaign = campaign_resp.data[0]
+    template = campaign.get("templates")
+    if not template:
+        raise HTTPException(status_code=400, detail="Campaign has no valid template")
+
     org_id = campaign["organization_id"]
     
     targets_resp = supabase.table("targets").select("*").eq("organization_id", org_id).execute()
     targets = targets_resp.data
     
-    simulations = []
+    if not targets:
+        return {"status": "info", "message": "No targets found for this organization"}
+
+    simulations_to_insert = []
+    email_payloads = []
+    
     for target in targets:
-        simulations.append({
+        tracking_id = str(uuid.uuid4())
+        click_url = f"{settings.APP_BASE_URL}{settings.API_V1_STR}/tracking/click/{tracking_id}"
+        
+        simulations_to_insert.append({
             "campaign_id": campaign_id,
             "target_id": target["id"],
-            "status": "sent",
-            "tracking_id": str(uuid.uuid4())
+            "tracking_id": tracking_id
+        })
+        
+        email_payloads.append({
+            "email": target["email"],
+            "name": target.get("name", "Team Member"),
+            "subject": template.get("subject", "Security Alert"),
+            "link": click_url
         })
     
-    if simulations:
-        supabase.table("simulations").insert(simulations).execute()
-        
+    if simulations_to_insert:
+        supabase.table("simulations").insert(simulations_to_insert).execute()
+    
     supabase.table("campaigns").update({"status": CampaignStatus.RUNNING}).eq("id", campaign_id).execute()
     
-    # 4. TODO: Trigger Background Task to send emails
+    from app.services.email_service import email_service
+    import asyncio
     
-    return {"status": "success", "message": f"Campaign launched for {len(targets)} targets"}
+    asyncio.create_task(email_service.send_simulation_emails(campaign_id, email_payloads))
+    
+    return {
+        "status": "success", 
+        "message": f"Campaign '{campaign['title']}' launched. {len(targets)} simulations triggered."
+    }
 
 import uuid
+from app.core.supabase import get_supabase_admin

@@ -27,6 +27,8 @@ class TargetCreate(TargetBase):
 
 class Target(TargetBase):
     id: str
+    risk_index: float = 0.0
+    behavioral_tags: List[str] = []
     created_at: datetime
     
     class Config:
@@ -67,3 +69,17 @@ class SimulationEventCreate(BaseModel):
 class SimulationEvent(SimulationEventCreate):
     id: str
     created_at: datetime
+class TemplateBase(BaseModel):
+    name: str
+    type: str
+    subject: str
+    content: str
+    is_ai_generated: bool = False
+    ai_prompt_context: Optional[dict] = None
+
+class Template(TemplateBase):
+    id: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
