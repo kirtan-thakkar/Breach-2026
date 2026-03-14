@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { cookies } from "next/headers";
 import { ArrowUpRight, Layers3, PlusCircle, Target } from "lucide-react";
 
 import OpsLayout from "@/components/ops/layout";
@@ -16,8 +17,10 @@ const STATUS_VARIANT = {
 
 export default async function CampaignPage({ searchParams }) {
   const params = await searchParams;
-  const orgId = getOrgIdFromParams(params);
-  const { campaigns } = await loadOrgSnapshot(orgId);
+  const cookieStore = await cookies();
+  const token = cookieStore.get("auth_session")?.value;
+  const orgId = getOrgIdFromParams(params) || cookieStore.get("org_id")?.value || "";
+  const { campaigns } = await loadOrgSnapshot(orgId, token);
 
   const runningCount = campaigns.filter((campaign) => campaign.status === "running").length;
   const scheduledCount = campaigns.filter((campaign) => campaign.status === "scheduled").length;
@@ -70,7 +73,7 @@ export default async function CampaignPage({ searchParams }) {
               className="grid gap-3 rounded-xl border border-slate-800 bg-slate-950/80 p-3 md:grid-cols-[1.4fr_auto_auto_auto_auto_auto] md:items-center"
             >
               <div>
-                <p className="text-sm font-semibold text-slate-100">{campaign.title}</p>
+                <p className="text-sm font-semibold text-slate-100">{campaign.name || campaign.title || "Untitled Campaign"}</p>
                 <p className="mt-0.5 text-xs uppercase tracking-[0.12em] text-slate-500">
                   {formatCampaignType(campaign.type)}
                 </p>

@@ -3,6 +3,7 @@ from app.services.ai_service import ai_service
 from app.services.ml_service import ml_service
 from pydantic import BaseModel
 from typing import List, Optional
+from app.core.auth import require_admin
 
 router = APIRouter()
 
@@ -16,7 +17,7 @@ class RiskRequest(BaseModel):
     submitted: int
 
 @router.post("/generate-template")
-async def generate_template(request: PhishingRequest):
+async def generate_template(request: PhishingRequest, admin: any = Depends(require_admin)):
     try:
         content = await ai_service.generate_phishing_content(request.context, request.department)
         return content
@@ -24,7 +25,7 @@ async def generate_template(request: PhishingRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/predict-risk")
-async def predict_risk(request: RiskRequest):
+async def predict_risk(request: RiskRequest, admin: any = Depends(require_admin)):
     stats = {
         'email_opened': request.opened,
         'link_clicked': request.clicked,
@@ -42,7 +43,7 @@ async def predict_risk(request: RiskRequest):
     }
 
 @router.post("/summarize-insights")
-async def summarize_insights(risk_score: float, department: str):
+async def summarize_insights(risk_score: float, department: str, admin: any = Depends(require_admin)):
     if not ai_service.model:
         return {"recommendation": "Maintain standard security training."}
     

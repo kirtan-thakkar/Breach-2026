@@ -1,10 +1,13 @@
+import { cookies } from "next/headers";
 import Dashboard from "@/components/dashboard";
 import { getOrgIdFromParams, loadOrgSnapshot } from "@/lib/backend";
 
 export default async function AdvisorDashboardPage({ searchParams }) {
   const params = await searchParams;
-  const orgId = getOrgIdFromParams(params);
-  const { summary, campaigns, highlightedCampaign, highlightedAnalytics } = await loadOrgSnapshot(orgId);
+  const cookieStore = await cookies();
+  const token = cookieStore.get("auth_session")?.value;
+  const orgId = getOrgIdFromParams(params) || cookieStore.get("org_id")?.value || "";
+  const { summary, campaigns, highlightedCampaign, highlightedAnalytics } = await loadOrgSnapshot(orgId, token);
 
   return (
     <Dashboard

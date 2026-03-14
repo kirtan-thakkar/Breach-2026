@@ -1,6 +1,7 @@
 import { Inter } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/layout/navbar";
+import SecurityAssistant from "@/components/chatbot/SecurityAssistant";
 
 export const metadata = {
   title: "Breach 2026",
@@ -20,6 +21,7 @@ export default function RootLayout({ children }) {
       >
         <Navbar />
         {children}
+        <SecurityAssistant />
       </body>
     </html>
   );

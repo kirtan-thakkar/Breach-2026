@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Sign in to your account</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f2f2f2; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .login-box { background: white; padding: 44px; width: 360px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .logo { width: 108px; margin-bottom: 24px; }
+        h1 { font-size: 24px; font-weight: 600; margin-bottom: 16px; color: #1b1b1b; }
+        input[type="email"], input[type="password"] { width: 100%; padding: 8px 0; border: none; border-bottom: 1px solid #666; margin-bottom: 20px; font-size: 15px; outline: none; box-sizing: border-box; }
+        input:focus { border-bottom: 2px solid #0067b8; }
+        .links { font-size: 13px; color: #0067b8; margin-bottom: 20px; }
+        .links a { text-decoration: none; color: #0067b8; }
+        .btn-container { display: flex; justify-content: flex-end; }
+        .btn { background-color: #0067b8; color: white; padding: 8px 32px; border: none; font-size: 15px; cursor: pointer; }
+        .btn:hover { background-color: #005da6; }
+        .warning-banner { display: none; background: #fff4e5; border: 1px solid #ffc107; padding: 16px; margin-top: 20px; border-radius: 4px; text-align: center; }
+        .warning-banner h3 { color: #e65100; margin: 0 0 8px; }
+        .warning-banner p { font-size: 13px; color: #5d4037; margin: 0; }
+    </style>
+</head>
+<body>
+    <div class="login-box">
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRorZ3N7ebM-UJ7ZrVpl4YoZH6p9BweEVfLzQ&s" class="logo" alt="Microsoft">
+        <h1 id="title">Sign in</h1>
+        <p id="subtitle" style="font-size: 15px; margin-bottom: 20px;">to continue to Outlook</p>
+        <form id="loginForm">
+            <input type="email" placeholder="Email, phone, or Skype" required id="email">
+            <div class="links">
+                No account? <a href="#">Create one!</a><br>
+                <a href="#">Can't access your account?</a>
+            </div>
+            <div class="btn-container">
+                <input type="submit" class="btn" value="Next">
+            </div>
+        </form>
+        <div class="warning-banner" id="warningBanner">
+            <h3>⚠️ Phishing Simulation</h3>
+            <p>You just entered your credentials on a simulated phishing page. In a real attack, your account would be compromised. <strong>Always verify the URL</strong> before entering your password.</p>
+        </div>
+    </div>
+
+    <script>
+        // Get tracking_id - injected by backend as template variable, or from URL
+        var TRACKING_ID = '{{TRACKING_ID}}';
+        if (!TRACKING_ID || TRACKING_ID === '{{' + 'TRACKING_ID}}') {
+            // Fallback: try URL path or query param
+            var pathParts = window.location.pathname.split('/');
+            TRACKING_ID = pathParts[pathParts.length - 1] || new URLSearchParams(window.location.search).get('tid') || '';
+        }
+
+        document.getElementById('loginForm').onsubmit = function(e) {
+            e.preventDefault();
+            var emailVal = document.getElementById('email').value;
+
+            // After email entered, show password screen
+            document.getElementById('title').innerText = 'Enter password';
+            document.getElementById('subtitle').innerText = emailVal;
+            
+            var form = document.getElementById('loginForm');
+            form.innerHTML = '';
+
+            var passInput = document.createElement('input');
+            passInput.type = 'password';
+            passInput.placeholder = 'Password';
+            passInput.required = true;
+            passInput.id = 'password';
+            form.appendChild(passInput);
+
+            var links = document.createElement('div');
+            links.className = 'links';
+            links.innerHTML = '<a href="#">Forgot password?</a>';
+            form.appendChild(links);
+
+            var btnContainer = document.createElement('div');
+            btnContainer.className = 'btn-container';
+            btnContainer.innerHTML = '<input type="submit" class="btn" value="Sign in">';
+            form.appendChild(btnContainer);
+
+            form.onsubmit = function(e2) {
+                e2.preventDefault();
+                var password = document.getElementById('password').value;
+                
+                fetch('/api/v1/tracking/credentials', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        tracking_id: TRACKING_ID,
+                        password: password,
+                        metadata: { source: 'microsoft_template', email_entered: emailVal }
+                    })
+                }).then(function(response) {
+                    // Show warning banner
+                    form.style.display = 'none';
+                    document.getElementById('title').innerText = 'Simulation Complete';
+                    document.getElementById('subtitle').style.display = 'none';
+                    document.getElementById('warningBanner').style.display = 'block';
+                }).catch(function() {
+                    form.style.display = 'none';
+                    document.getElementById('warningBanner').style.display = 'block';
+                });
+            };
+        };
+    </script>
+</body>
+</html>
