@@ -1,26 +1,24 @@
-import { DM_Sans } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
-import Navbar from "@/components/navbar";
+import Navbar from "@/components/layout/navbar";
 
 export const metadata = {
   title: "Breach 2026",
   description: "A cyber attack application",
 };
 
-const dmSans = DM_Sans({
+const inter = Inter({
   subsets: ["latin"],
-  weight: ["400", "500", "700"],
+  weight: ["400", "500", "600", "700"],
 });
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body
-        className={`${dmSans.className} antialiased`}
+        className={`${inter.className} antialiased`}
       >
-        <section className="sticky z-100 top-4 backdrop-blur-md ">
-          <Navbar />
-        </section>
+        <Navbar />
         {children}
       </body>
     </html>
