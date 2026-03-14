@@ -1,7 +1,9 @@
+import asyncio
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import get_settings
 from app.api.v1.api import api_router
+from app.services.campaign_service import campaign_service
 
 settings = get_settings()
 
@@ -57,6 +59,27 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
     )
 
 app.include_router(api_router, prefix=settings.API_V1_STR)
+
+
+async def _scheduled_campaign_runner():
+    while True:
+        try:
+            await campaign_service.run_scheduled_campaigns()
+        except Exception as error:
+            logger.error(f"Scheduled campaign runner error: {error}", exc_info=True)
+        await asyncio.sleep(30)
+
+
+@app.on_event("startup")
+async def startup_scheduler():
+    app.state.scheduled_campaign_task = asyncio.create_task(_scheduled_campaign_runner())
+
+
+@app.on_event("shutdown")
+async def shutdown_scheduler():
+    task = getattr(app.state, "scheduled_campaign_task", None)
+    if task:
+        task.cancel()
 
 @app.get("/")
 async def root():

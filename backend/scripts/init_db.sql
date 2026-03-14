@@ -41,7 +41,10 @@ CREATE TABLE campaigns (
     name TEXT NOT NULL,
     status TEXT CHECK (status IN ('draft','scheduled','running','completed')),
     created_at TIMESTAMPTZ DEFAULT NOW(),
-    scheduled_at TIMESTAMPTZ
+    scheduled_at TIMESTAMPTZ,
+    include_qr_code BOOLEAN DEFAULT FALSE,
+    selected_target_ids JSONB DEFAULT '[]'::jsonb,
+    ad_hoc_emails JSONB DEFAULT '[]'::jsonb
 );
 
 CREATE TABLE simulations (

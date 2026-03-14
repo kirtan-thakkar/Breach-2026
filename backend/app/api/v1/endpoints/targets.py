@@ -3,11 +3,17 @@ from typing import List, Optional
 from app.core.supabase import get_supabase, get_supabase_admin
 from app.models.schemas import Target, TargetCreate
 from app.core.auth import require_admin, AuthenticatedUser
+from app.services.campaign_service import campaign_service
+from pydantic import BaseModel
 import csv
 import io
 import uuid
 
 router = APIRouter()
+
+
+class TargetAttackRequest(BaseModel):
+    attack_type: str
 
 
 def _is_uuid(value: str) -> bool:
@@ -19,30 +25,35 @@ def _is_uuid(value: str) -> bool:
 
 
 def _resolve_org_id(supabase, org_id: Optional[str], fallback_org_id: Optional[str] = None) -> str:
-    if org_id and str(org_id).strip():
-        org_id = str(org_id).strip()
-    else:
-        org_id = fallback_org_id
+    candidate = str(org_id).strip() if org_id and str(org_id).strip() else None
+    fallback = str(fallback_org_id).strip() if fallback_org_id and str(fallback_org_id).strip() else None
 
-    if org_id and _is_uuid(org_id):
-        return org_id
+    # Prefer explicit UUID from request/body.
+    if candidate and _is_uuid(candidate):
+        return candidate
 
-    if not org_id:
-        raise HTTPException(status_code=400, detail="Missing organization id")
+    # Then authenticated user org.
+    if fallback and _is_uuid(fallback):
+        return fallback
 
-    if org_id != "demo-org":
+    # Legacy/demo value support.
+    if candidate and candidate != "demo-org":
         raise HTTPException(status_code=400, detail="Invalid organization id")
 
-    org_response = supabase.table("organizations").select("id").eq("name", "Default").limit(1).execute()
-    if org_response.data:
-        return org_response.data[0]["id"]
+    # Do NOT try to create organizations here (can fail under RLS/service-key issues).
+    # Resolve an existing org id from known tables.
+    default_org = supabase.table("organizations").select("id").eq("name", "Default").limit(1).execute()
+    if default_org.data:
+        return default_org.data[0]["id"]
 
-    admin = get_supabase_admin()
-    created = admin.table("organizations").insert({"name": "Default"}).execute()
-    if created.data:
-        return created.data[0]["id"]
+    any_org = supabase.table("organizations").select("id").limit(1).execute()
+    if any_org.data:
+        return any_org.data[0]["id"]
 
-    raise HTTPException(status_code=400, detail="Unable to resolve organization")
+    raise HTTPException(
+        status_code=400,
+        detail="No organization found. Create one in Supabase (e.g. 'Default') and try again.",
+    )
 
 @router.get("", response_model=List[Target])
 async def list_targets(org_id: Optional[str] = None, admin: AuthenticatedUser = Depends(require_admin)):
@@ -70,10 +81,12 @@ async def batch_upload_targets(org_id: Optional[str] = None, file: UploadFile = 
     
     targets_to_add = []
     for row in reader:
+        whatsapp_number = row.get("whatsapp_number") or row.get("mobile") or row.get("phone")
         targets_to_add.append({
             "email": row.get("email"),
             "name": row.get("name"),
             "department": row.get("department"),
+            "whatsapp_number": whatsapp_number,
             "organization_id": resolved_org_id
         })
         
@@ -83,3 +96,27 @@ async def batch_upload_targets(org_id: Optional[str] = None, file: UploadFile = 
     response = supabase.table("targets").insert(targets_to_add).execute()
     
     return {"status": "success", "count": len(response.data)}
+
+
+@router.post("/{target_id}/test-attack")
+async def test_target_attack(target_id: str, payload: TargetAttackRequest, admin: AuthenticatedUser = Depends(require_admin)):
+    result = await campaign_service.send_target_test_attack(
+        org_id=admin.organization_id,
+        target_id=target_id,
+        attack_type=payload.attack_type,
+    )
+
+    if result.get("success"):
+        return {
+            "status": "ok",
+            "message": result.get("message") or "Test attack dispatched",
+            "tracking_id": result.get("tracking_id"),
+            "tracking_link": result.get("tracking_link"),
+            "dispatch_uri": result.get("dispatch_uri"),
+            "channel": result.get("channel"),
+            "attack_type": result.get("attack_type"),
+            "preview": result.get("preview"),
+        }
+
+    detail = result.get("error") or "Failed to dispatch test attack"
+    raise HTTPException(status_code=400, detail=detail)

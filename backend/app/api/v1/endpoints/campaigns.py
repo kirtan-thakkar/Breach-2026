@@ -22,6 +22,45 @@ class TestWhatsAppRequest(BaseModel):
     phone_number: str
     message: Optional[str] = None
 
+class TestCalendarRequest(BaseModel):
+    email: EmailStr
+
+
+def _resolve_campaign_org_id(supabase, requested_org_id: Optional[str], admin: AuthenticatedUser) -> Optional[str]:
+    if requested_org_id:
+        return requested_org_id
+    if admin.organization_id:
+        return admin.organization_id
+
+    # Fallback: infer from admin email if present in targets.
+    if getattr(admin, "email", None):
+        try:
+            target_res = (
+                supabase.table("targets")
+                .select("organization_id")
+                .eq("email", str(admin.email))
+                .limit(1)
+                .execute()
+            )
+            if target_res.data:
+                inferred = target_res.data[0].get("organization_id")
+                if inferred:
+                    return inferred
+        except Exception:
+            pass
+
+    # Last resort: use any organization present in campaigns.
+    try:
+        campaign_res = supabase.table("campaigns").select("organization_id").limit(1).execute()
+        if campaign_res.data:
+            inferred = campaign_res.data[0].get("organization_id")
+            if inferred:
+                return inferred
+    except Exception:
+        pass
+
+    return None
+
 def _normalize_campaign_row(row: dict) -> dict:
     normalized = dict(row)
     if "name" not in normalized and "title" in normalized:
@@ -42,6 +81,20 @@ async def send_test_email(payload: TestEmailRequest, admin: AuthenticatedUser = 
         }
     
     raise HTTPException(status_code=500, detail="Email delivery failed. Check SMTP credentials in .env file.")
+
+@router.post("/test-calendar")
+async def send_test_calendar(payload: TestCalendarRequest, admin: AuthenticatedUser = Depends(require_admin)):
+    result = await campaign_service.send_test_calendar_invite(admin.organization_id, payload.email)
+    if result.get("success"):
+        return {
+            "status": "ok",
+            "message": f"Calendar meeting invite sent to {payload.email}",
+            "subject": result.get("subject"),
+            "tracking_id": result.get("tracking_id"),
+            "tracking_link": result.get("tracking_link"),
+            "open_pixel": result.get("open_pixel"),
+        }
+    raise HTTPException(status_code=500, detail="Calendar invite delivery failed. Check SMTP credentials in .env file.")
 
 @router.post("/test-whatsapp")
 async def send_test_whatsapp(payload: TestWhatsAppRequest, admin: AuthenticatedUser = Depends(require_admin)):
@@ -64,22 +117,47 @@ async def send_test_whatsapp(payload: TestWhatsAppRequest, admin: AuthenticatedU
 
 @router.get("", response_model=List[Campaign])
 async def list_campaigns(org_id: Optional[str] = None, admin: AuthenticatedUser = Depends(require_admin)):
-    target_org_id = org_id or admin.organization_id
+    supabase = get_supabase()
+    target_org_id = _resolve_campaign_org_id(supabase, org_id, admin)
     if not target_org_id:
         return []
-    supabase = get_supabase()
     response = supabase.table("campaigns").select("*").eq("organization_id", target_org_id).execute()
     return [_normalize_campaign_row(item) for item in response.data]
 
 @router.post("", response_model=Campaign)
 async def create_campaign(campaign: CampaignCreate, admin: AuthenticatedUser = Depends(require_admin)):
+    supabase = get_supabase()
+    resolved_org_id = _resolve_campaign_org_id(supabase, campaign.organization_id, admin)
+    if not resolved_org_id:
+        raise HTTPException(status_code=400, detail="Organization ID required to create campaign")
+
+    creator_user_id = None
+    try:
+        admin_client = get_supabase_admin()
+        admin_client.table("users").upsert(
+            {
+                "id": admin.id,
+                "organization_id": resolved_org_id,
+                "email": admin.email,
+                "name": str(admin.email).split("@")[0],
+                "role": admin.role,
+            },
+            on_conflict="id",
+        ).execute()
+        creator_user_id = admin.id
+    except Exception as error:
+        print(f"[CAMPAIGN] Users sync skipped for campaign creator {admin.id}: {error}")
+
     data = await campaign_service.create_campaign(
-        org_id=campaign.organization_id,
+        org_id=resolved_org_id,
         title=campaign.name,
         description=campaign.description or "",
         template_id=campaign.template_id,
         campaign_type=campaign.type,
-        user_id=admin.id
+        user_id=creator_user_id,
+        scheduled_at=campaign.scheduled_at,
+        include_qr_code=campaign.include_qr_code,
+        attack_channel=campaign.attack_channel or "email_link",
     )
     if not data:
         raise HTTPException(status_code=400, detail="Failed to create campaign")
