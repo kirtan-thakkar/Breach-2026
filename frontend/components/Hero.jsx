@@ -4,7 +4,6 @@ import Container from "./Container";
 import { Safari } from "./ui/safari";
 import { Button } from "@/components/ui/button";
 import { motion } from "motion/react";
-
 const HeroPage = () => {
   return (
     <section className="relative isolate flex min-h-screen items-center overflow-hidden bg-breach-bg px-1 py-12 text-breach-text sm:px-2 sm:py-16">
@@ -72,7 +71,7 @@ const HeroPage = () => {
             >
               <Safari
                 url="breach2026.app/dashboard"
-                imageSrc="https://placehold.co/1200x750/03060d/e2e8f0?text=Breach+2026+Operations+Dashboard"
+                imageSrc="/image.png"
               />
             </motion.div>
         </div>

@@ -1,14 +1,10 @@
-import os
 from typing import Optional
-from dotenv import load_dotenv
-from app.core.supabase import get_supabase
-from app.langchain.rag import rag_engine
 
-load_dotenv()
+from app.core.supabase import get_supabase
+
 
 class RAGService:
-    def __init__(self, pdf_path: Optional[str] = None):
-        self.pdf_path = pdf_path or os.getenv("RAG_PDF_PATH", "backend/app/langchain/lang.pdf")
+    """Lightweight chat guidance service with no external RAG dependency."""
 
     def _load_user_history_events(self, user_email: str):
         supabase = get_supabase()
@@ -35,29 +31,55 @@ class RAGService:
         )
         return events.data or []
 
-    async def ask(self, session_id: str, question: str, user_email: Optional[str] = None):
-        """
-        Ask a question, optionally including the user's specific simulation history.
-        """
-        if not rag_engine.is_ready:
-            return "I'm sorry, my knowledge base is currently offline. Please try again later."
+    def _build_summary(self, events: list[dict]) -> str:
+        opened = sum(1 for event in events if event.get("event_type") == "email_opened")
+        clicked = sum(1 for event in events if event.get("event_type") == "link_clicked")
+        submitted = sum(1 for event in events if event.get("event_type") == "credential_submitted")
 
-        user_context = ""
+        if not events:
+            return "No simulation history found yet."
+
+        return (
+            f"Simulation history summary: {opened} opens, {clicked} link clicks, "
+            f"{submitted} credential submissions."
+        )
+
+    async def ask(self, session_id: str, question: str, user_email: Optional[str] = None):
+        """Return practical awareness guidance without external RAG engines."""
+        _ = session_id  # Reserved for future conversation state support.
+
+        tips = [
+            "Always verify sender domain and reply-to mismatch before trusting urgent requests.",
+            "Hover links and verify full destination URL before clicking.",
+            "Never submit credentials from an email link; open the trusted app/site manually.",
+            "Report suspicious messages to your security team immediately.",
+        ]
+
+        question_text = (question or "").strip()
+        if not question_text:
+            question_text = "How can I avoid phishing attacks?"
+
+        user_summary = ""
         if user_email:
             try:
                 events = self._load_user_history_events(user_email=user_email)
-                user_context = rag_engine.build_user_history_context(events)
+                user_summary = self._build_summary(events)
             except Exception as error:
-                print(f"Error fetching user history for AI: {error}")
+                print(f"Error fetching user history for chat assistant: {error}")
 
-        try:
-            return rag_engine.ask(
-                question=question,
-                session_id=session_id,
-                user_context=user_context,
-            )
-        except Exception as error:
-            print(f"Error in RAG ask: {error}")
-            return "I encountered an error while processing your request."
+        guidance = (
+            "Security Assistant\n"
+            f"Question: {question_text}\n\n"
+            "Top recommendations:\n"
+            f"1. {tips[0]}\n"
+            f"2. {tips[1]}\n"
+            f"3. {tips[2]}\n"
+            f"4. {tips[3]}"
+        )
+
+        if user_summary:
+            guidance = f"{guidance}\n\n{user_summary}"
+
+        return guidance
 
 rag_service = RAGService()
