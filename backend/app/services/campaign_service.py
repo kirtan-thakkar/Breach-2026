@@ -1,4 +1,5 @@
 import asyncio
+import re
 import uuid
 import urllib.parse
 from datetime import datetime, timezone
@@ -279,6 +280,7 @@ class CampaignService:
         data = {
             "organization_id": org_id,
             "title": title,
+            "name": title,
             "description": description,
             "template_id": actual_template_id,
             "type": campaign_type,
@@ -290,8 +292,25 @@ class CampaignService:
         data["status"] = initial_status
         if user_id:
             data["created_by"] = user_id
-        result = supabase.table("campaigns").insert(data).execute()
-        return result.data[0] if result.data else None
+
+        # Handle mixed/legacy schemas by stripping unknown columns one by one.
+        insert_payload = dict(data)
+        max_attempts = len(insert_payload) + 2
+        for _ in range(max_attempts):
+            try:
+                result = supabase.table("campaigns").insert(insert_payload).execute()
+                return result.data[0] if result.data else None
+            except Exception as insert_error:
+                error_text = str(insert_error)
+                missing_col_match = re.search(r"Could not find the '([^']+)' column of 'campaigns'", error_text)
+                if missing_col_match:
+                    missing_col = missing_col_match.group(1)
+                    if missing_col in insert_payload:
+                        insert_payload.pop(missing_col, None)
+                        continue
+                raise
+
+        return None
 
     async def launch_campaign(self, campaign_id: str, target_ids: List[str], background_tasks: BackgroundTasks, ad_hoc_emails: List[str] = None):
         supabase = get_supabase()
@@ -317,8 +336,9 @@ class CampaignService:
                         "ad_hoc_emails": ad_hoc_emails or [],
                     }
                 ).eq("id", campaign_id).execute()
+                campaign_title = campaign.get("title") or campaign.get("name") or "Campaign"
                 return {
-                    "message": f"Campaign '{campaign['title']}' scheduled for {scheduled_dt.isoformat()} with {len(target_ids) + len(ad_hoc_emails or [])} recipients"
+                    "message": f"Campaign '{campaign_title}' scheduled for {scheduled_dt.isoformat()} with {len(target_ids) + len(ad_hoc_emails or [])} recipients"
                 }
 
         # Update campaign status
@@ -330,7 +350,8 @@ class CampaignService:
         background_tasks.add_task(self._dispatch_simulation, campaign, target_ids, ad_hoc_emails or [])
         
         total = len(target_ids) + len(ad_hoc_emails or [])
-        return {"message": f"Campaign '{campaign['title']}' launched for {total} targets"}
+        campaign_title = campaign.get("title") or campaign.get("name") or "Campaign"
+        return {"message": f"Campaign '{campaign_title}' launched for {total} targets"}
 
     async def _dispatch_simulation(self, campaign_data: dict, target_ids: List[str], ad_hoc_emails: List[str] = None):
         supabase = get_supabase()
@@ -421,27 +442,31 @@ class CampaignService:
             await email_service.send_message(target["email"], content, tracking_id)
 
     async def run_scheduled_campaigns(self):
-        supabase = get_supabase_admin()
-        now_iso = datetime.now(timezone.utc).isoformat()
-        response = (
-            supabase.table("campaigns")
-            .select("*, templates(*)")
-            .eq("status", "scheduled")
-            .lte("scheduled_at", now_iso)
-            .execute()
-        )
-        campaigns = response.data or []
-        for campaign in campaigns:
-            try:
-                supabase.table("campaigns").update({"status": "running"}).eq("id", campaign["id"]).execute()
-                selected_target_ids = campaign.get("selected_target_ids") or []
-                ad_hoc_emails = campaign.get("ad_hoc_emails") or []
-                if not selected_target_ids:
-                    all_targets = supabase.table("targets").select("id").eq("organization_id", campaign["organization_id"]).execute()
-                    selected_target_ids = [item["id"] for item in (all_targets.data or []) if item.get("id")]
-                await self._dispatch_simulation(campaign, selected_target_ids, ad_hoc_emails)
-            except Exception as error:
-                print(f"[SCHEDULED-CAMPAIGN] Failed to dispatch {campaign.get('id')}: {error}")
-                supabase.table("campaigns").update({"status": "draft"}).eq("id", campaign["id"]).execute()
+        try:
+            supabase = get_supabase_admin()
+            now_iso = datetime.now(timezone.utc).isoformat()
+            response = (
+                supabase.table("campaigns")
+                .select("*, templates(*)")
+                .eq("status", "scheduled")
+                .lte("scheduled_at", now_iso)
+                .execute()
+            )
+            campaigns = response.data or []
+            for campaign in campaigns:
+                try:
+                    supabase.table("campaigns").update({"status": "running"}).eq("id", campaign["id"]).execute()
+                    selected_target_ids = campaign.get("selected_target_ids") or []
+                    ad_hoc_emails = campaign.get("ad_hoc_emails") or []
+                    if not selected_target_ids:
+                        all_targets = supabase.table("targets").select("id").eq("organization_id", campaign["organization_id"]).execute()
+                        selected_target_ids = [item["id"] for item in (all_targets.data or []) if item.get("id")]
+                    await self._dispatch_simulation(campaign, selected_target_ids, ad_hoc_emails)
+                except Exception as error:
+                    print(f"[SCHEDULED-CAMPAIGN] Failed to dispatch {campaign.get('id')}: {error}")
+                    supabase.table("campaigns").update({"status": "draft"}).eq("id", campaign["id"]).execute()
+        except Exception as error:
+            print(f"[SCHEDULED-CAMPAIGN] Scheduler unavailable: {error}")
+            return
 
 campaign_service = CampaignService()
